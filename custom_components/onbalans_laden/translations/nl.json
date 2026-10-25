@@ -1,0 +1,193 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Onbalans Laden",
+        "description": "Prijsbron (Tenergy publieke pagina) en ophaalinterval.",
+        "data": {
+          "url": "URL onbalansprijzen",
+          "scan_interval": "Ophaalinterval (s)"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Is al ingesteld."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Onbalans Laden instellingen",
+        "description": "Kies wat je wilt aanpassen en sluit af met **Opslaan**. Max laadvermogen: {max_kw} kW.",
+        "menu_options": {
+          "blokken": "Tijdblok instellen",
+          "standaard": "Standaardregel (op alle tijdblokken)",
+          "indeling": "Indeling tijdblokken (tijden)",
+          "mqtt": "MQTT-commando's start/stop",
+          "installatie": "Installatie & limieten",
+          "algemeen": "Prijsbron",
+          "opslaan": "💾 Opslaan en sluiten"
+        }
+      },
+      "blokken": {
+        "title": "Tijdblok kiezen",
+        "data": {
+          "block": "Tijdblok"
+        }
+      },
+      "blok": {
+        "title": "Tijdblok {nr}: {van} – {tot}",
+        "description": "Max laadvermogen {max_kw} kW.",
+        "data": {
+          "enabled": "Tijdblok actief",
+          "mode": "Laden wanneer prijs",
+          "threshold": "Drempel onbalansprijs (€/MWh)",
+          "offset_low": "Offset onder drempel (€/MWh)",
+          "offset_high": "Offset boven drempel (€/MWh)",
+          "delay_on": "Vertraging vóór start (s)",
+          "delay_off": "Vertraging vóór stop (s)",
+          "power_kw": "Laadvermogen (kW)"
+        },
+        "data_description": {
+          "threshold": "Middenwaarde. Bij 'onder drempel': start als prijs ≤ drempel − offset onder, stop als prijs ≥ drempel + offset boven.",
+          "offset_low": "Voorkomt pendelen (hysterese).",
+          "offset_high": "Voorkomt pendelen (hysterese).",
+          "delay_on": "Startvoorwaarde moet zo lang onafgebroken gelden.",
+          "delay_off": "Stopvoorwaarde moet zo lang onafgebroken gelden.",
+          "power_kw": "Wordt begrensd op 140 A per omvormer en 3×32 A AC."
+        }
+      },
+      "standaard": {
+        "title": "Standaardregel",
+        "description": "Deze waarden worden (met het vinkje aan) in één keer in álle tijdblokken gezet. Max {max_kw} kW.",
+        "data": {
+          "enabled": "Tijdblok actief",
+          "mode": "Laden wanneer prijs",
+          "threshold": "Drempel onbalansprijs (€/MWh)",
+          "offset_low": "Offset onder drempel (€/MWh)",
+          "offset_high": "Offset boven drempel (€/MWh)",
+          "delay_on": "Vertraging vóór start (s)",
+          "delay_off": "Vertraging vóór stop (s)",
+          "power_kw": "Laadvermogen (kW)",
+          "apply_all": "Toepassen op alle tijdblokken"
+        },
+        "data_description": {
+          "threshold": "Middenwaarde. Bij 'onder drempel': start als prijs ≤ drempel − offset onder, stop als prijs ≥ drempel + offset boven.",
+          "offset_low": "Voorkomt pendelen (hysterese).",
+          "offset_high": "Voorkomt pendelen (hysterese).",
+          "delay_on": "Startvoorwaarde moet zo lang onafgebroken gelden.",
+          "delay_off": "Stopvoorwaarde moet zo lang onafgebroken gelden.",
+          "power_kw": "Wordt begrensd op 140 A per omvormer en 3×32 A AC."
+        }
+      },
+      "indeling": {
+        "title": "Indeling tijdblokken",
+        "description": "Eén blok per regel als `HH:MM-HH:MM`. Eindtijd 00:00 = middernacht. Bestaande instellingen blijven per regelnummer behouden; nieuwe regels krijgen de standaardregel. Tijden die in geen blok vallen: niet laden.",
+        "data": {
+          "layout": "Tijdblokken"
+        }
+      },
+      "mqtt": {
+        "title": "MQTT-commando's",
+        "description": "Eén MQTT-bericht per regel: `topic = payload`. Regels met # zijn commentaar. Variabelen in de payload: {vars}. Voorbeeld: `{example}`",
+        "data": {
+          "start_commands": "Start-/laadcommando's",
+          "stop_commands": "Stopcommando's",
+          "repeat_interval": "Startcommando herhalen elke (s, 0 = uit)",
+          "qos": "QoS",
+          "retain": "Retain",
+          "stop_on_startup": "Stopcommando sturen bij opstarten"
+        },
+        "data_description": {
+          "start_commands": "Wordt verstuurd bij start en bij wijziging van het vermogen (bv. ander tijdblok).",
+          "repeat_interval": "Nodig als de Cerbo/ESS een setpoint na een time-out vergeet."
+        }
+      },
+      "installatie": {
+        "title": "Installatie & limieten",
+        "description": "Huidig max: DC-zijde {max_dc} kW, AC-aansluiting {max_ac} kW → toegestaan {max_kw} kW.",
+        "data": {
+          "inverters": "Aantal omvormers",
+          "max_dc_current": "Max laadstroom per omvormer (A DC)",
+          "battery_voltage": "Accuspanning (V) voor A↔kW",
+          "ac_phases": "Aantal fasen",
+          "ac_max_current": "Max stroom per fase (A AC)",
+          "ac_voltage": "Netspanning (V)",
+          "efficiency": "Rendement AC→DC (%)"
+        }
+      },
+      "algemeen": {
+        "title": "Prijsbron",
+        "data": {
+          "url": "URL onbalansprijzen",
+          "scan_interval": "Ophaalinterval (s)",
+          "price_column": "Prijskolom",
+          "stale_minutes": "Prijs verouderd na (min)"
+        },
+        "data_description": {
+          "stale_minutes": "Is de nieuwste regel ouder, dan wordt er niet (meer) geladen."
+        }
+      }
+    },
+    "error": {
+      "invalid_layout": "Ongeldige indeling. Gebruik per regel HH:MM-HH:MM.",
+      "invalid_commands": "Ongeldig: gebruik per regel `topic = payload` (topic zonder spaties, # of +)."
+    }
+  },
+  "selector": {
+    "mode": {
+      "options": {
+        "below": "onder drempel (goedkoop laden)",
+        "above": "boven drempel"
+      }
+    },
+    "price_column": {
+      "options": {
+        "afnemen": "Afnemen (inkoop)",
+        "invoeden": "Invoeden",
+        "max": "Hoogste van beide"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "onbalansprijs": {
+        "name": "Onbalansprijs"
+      },
+      "status": {
+        "name": "Status",
+        "state": {
+          "uit": "Uit",
+          "wachten": "Wachten",
+          "startvertraging": "Startvertraging",
+          "laden": "Laden",
+          "stopvertraging": "Stopvertraging",
+          "geen_tijdblok": "Geen tijdblok",
+          "geen_prijs": "Geen actuele prijs"
+        }
+      },
+      "tijdblok": {
+        "name": "Actief tijdblok"
+      },
+      "drempel": {
+        "name": "Drempel"
+      },
+      "laadvermogen": {
+        "name": "Laadvermogen setpoint"
+      }
+    },
+    "binary_sensor": {
+      "laden": {
+        "name": "Laden"
+      }
+    },
+    "switch": {
+      "automatisch": {
+        "name": "Automatische sturing"
+      },
+      "testmodus": {
+        "name": "Testmodus (niet versturen)"
+      }
+    }
+  }
+}

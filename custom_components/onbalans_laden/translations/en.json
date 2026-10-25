@@ -1,0 +1,193 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Onbalans Laden",
+        "description": "Price source (Tenergy public page) and poll interval.",
+        "data": {
+          "url": "Imbalance price URL",
+          "scan_interval": "Poll interval (s)"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Onbalans Laden settings",
+        "description": "Choose what to change and finish with **Save**. Max charge power: {max_kw} kW.",
+        "menu_options": {
+          "blokken": "Edit a time block",
+          "standaard": "Default rule (all blocks)",
+          "indeling": "Time block layout",
+          "mqtt": "MQTT start/stop commands",
+          "installatie": "Installation & limits",
+          "algemeen": "Price source",
+          "opslaan": "💾 Save and close"
+        }
+      },
+      "blokken": {
+        "title": "Choose time block",
+        "data": {
+          "block": "Time block"
+        }
+      },
+      "blok": {
+        "title": "Time block {nr}: {van} – {tot}",
+        "description": "Max charge power {max_kw} kW.",
+        "data": {
+          "enabled": "Time block active",
+          "mode": "Charge when price is",
+          "threshold": "Imbalance price threshold (€/MWh)",
+          "offset_low": "Offset below threshold (€/MWh)",
+          "offset_high": "Offset above threshold (€/MWh)",
+          "delay_on": "Delay before start (s)",
+          "delay_off": "Delay before stop (s)",
+          "power_kw": "Charge power (kW)"
+        },
+        "data_description": {
+          "threshold": "Mode 'below': start when price ≤ threshold − offset below, stop when price ≥ threshold + offset above.",
+          "offset_low": "Hysteresis against toggling.",
+          "offset_high": "Hysteresis against toggling.",
+          "delay_on": "Start condition must hold continuously this long.",
+          "delay_off": "Stop condition must hold continuously this long.",
+          "power_kw": "Limited by DC (A per inverter) and AC connection."
+        }
+      },
+      "standaard": {
+        "title": "Default rule",
+        "description": "With the checkbox on, these values are written to all time blocks. Max {max_kw} kW.",
+        "data": {
+          "enabled": "Time block active",
+          "mode": "Charge when price is",
+          "threshold": "Imbalance price threshold (€/MWh)",
+          "offset_low": "Offset below threshold (€/MWh)",
+          "offset_high": "Offset above threshold (€/MWh)",
+          "delay_on": "Delay before start (s)",
+          "delay_off": "Delay before stop (s)",
+          "power_kw": "Charge power (kW)",
+          "apply_all": "Apply to all time blocks"
+        },
+        "data_description": {
+          "threshold": "Mode 'below': start when price ≤ threshold − offset below, stop when price ≥ threshold + offset above.",
+          "offset_low": "Hysteresis against toggling.",
+          "offset_high": "Hysteresis against toggling.",
+          "delay_on": "Start condition must hold continuously this long.",
+          "delay_off": "Stop condition must hold continuously this long.",
+          "power_kw": "Limited by DC (A per inverter) and AC connection."
+        }
+      },
+      "indeling": {
+        "title": "Time block layout",
+        "description": "One block per line as `HH:MM-HH:MM`. Existing settings are kept per line number; new lines get the default rule.",
+        "data": {
+          "layout": "Time blocks"
+        }
+      },
+      "mqtt": {
+        "title": "MQTT commands",
+        "description": "One MQTT message per line: `topic = payload`. Lines starting with # are comments. Payload variables: {vars}. Example: `{example}`",
+        "data": {
+          "start_commands": "Start/charge commands",
+          "stop_commands": "Stop commands",
+          "repeat_interval": "Repeat start command every (s, 0 = off)",
+          "qos": "QoS",
+          "retain": "Retain",
+          "stop_on_startup": "Send stop command on startup"
+        },
+        "data_description": {
+          "start_commands": "Sent on start and when power changes.",
+          "repeat_interval": "Needed if the GX forgets a setpoint after a timeout."
+        }
+      },
+      "installatie": {
+        "title": "Installation & limits",
+        "description": "Current max: DC {max_dc} kW, AC {max_ac} kW → allowed {max_kw} kW.",
+        "data": {
+          "inverters": "Number of inverters",
+          "max_dc_current": "Max charge current per inverter (A DC)",
+          "battery_voltage": "Battery voltage (V)",
+          "ac_phases": "Phases",
+          "ac_max_current": "Max current per phase (A AC)",
+          "ac_voltage": "Grid voltage (V)",
+          "efficiency": "Efficiency AC→DC (%)"
+        }
+      },
+      "algemeen": {
+        "title": "Price source",
+        "data": {
+          "url": "Imbalance price URL",
+          "scan_interval": "Poll interval (s)",
+          "price_column": "Price column",
+          "stale_minutes": "Price stale after (min)"
+        },
+        "data_description": {
+          "stale_minutes": "If the newest row is older, charging stops."
+        }
+      }
+    },
+    "error": {
+      "invalid_layout": "Invalid layout. Use HH:MM-HH:MM per line.",
+      "invalid_commands": "Invalid: use `topic = payload` per line."
+    }
+  },
+  "selector": {
+    "mode": {
+      "options": {
+        "below": "below threshold (cheap charging)",
+        "above": "above threshold"
+      }
+    },
+    "price_column": {
+      "options": {
+        "afnemen": "Afnemen (offtake)",
+        "invoeden": "Invoeden (feed-in)",
+        "max": "Highest of both"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "onbalansprijs": {
+        "name": "Imbalance price"
+      },
+      "status": {
+        "name": "Status",
+        "state": {
+          "uit": "Off",
+          "wachten": "Waiting",
+          "startvertraging": "Start delay",
+          "laden": "Charging",
+          "stopvertraging": "Stop delay",
+          "geen_tijdblok": "No time block",
+          "geen_prijs": "No current price"
+        }
+      },
+      "tijdblok": {
+        "name": "Active time block"
+      },
+      "drempel": {
+        "name": "Threshold"
+      },
+      "laadvermogen": {
+        "name": "Charge power setpoint"
+      }
+    },
+    "binary_sensor": {
+      "laden": {
+        "name": "Charging"
+      }
+    },
+    "switch": {
+      "automatisch": {
+        "name": "Automatic control"
+      },
+      "testmodus": {
+        "name": "Test mode (don't publish)"
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "domain": "onbalans_laden",
+  "name": "Onbalans Laden (Victron)",
+  "codeowners": [
+    "@jbsmi"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "mqtt"
+  ],
+  "documentation": "https://github.com/jbsmi/onbalans-laden",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/jbsmi/onbalans-laden/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}
