@@ -216,6 +216,7 @@ async def test_price_unit_ct_kwh(hass: HomeAssistant, mqtt_mock, aioclient_mock)
 
     num = hass.states.get("number.onbalans_laden_blok_1_drempel")
     assert float(num.state) == 3.0 and num.attributes["unit_of_measurement"] == "ct/kWh"
+    assert num.attributes["step"] == 1.0  # standaard stapgrootte 1
     await hass.services.async_call("number", "set_value",
         {"entity_id": "number.onbalans_laden_blok_1_drempel", "value": 1.5}, blocking=True)
     await hass.async_block_till_done()
