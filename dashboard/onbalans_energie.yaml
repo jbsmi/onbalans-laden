@@ -85,6 +85,46 @@ views:
             features:
               - type: toggle
 
+      # ---------------------------------------------------------------- instellingen blok 1
+      - type: grid
+        column_span: 4
+        cards:
+          - type: heading
+            heading: Instellingen tijdblok 1
+            icon: mdi:tune
+          - type: entities
+            grid_options:
+              columns: full
+            state_color: true
+            show_header_toggle: false
+            entities:
+              - entity: switch.onbalans_laden_blok_1_actief
+                name: Tijdblok actief
+              - entity: time.onbalans_laden_blok_1_start
+                name: Begintijd
+              - entity: time.onbalans_laden_blok_1_eind
+                name: Eindtijd
+              - entity: select.onbalans_laden_blok_1_modus
+                name: Laden als prijs
+              - entity: number.onbalans_laden_blok_1_drempel
+                name: Drempel
+              - entity: number.onbalans_laden_blok_1_offset_onder
+                name: Offset onder drempel
+              - entity: number.onbalans_laden_blok_1_offset_boven
+                name: Offset boven drempel
+              - entity: number.onbalans_laden_blok_1_vertraging_start
+                name: Vertraging vóór start
+              - entity: number.onbalans_laden_blok_1_vertraging_stop
+                name: Vertraging vóór stop
+              - entity: number.onbalans_laden_blok_1_vermogen
+                name: Laadvermogen
+          - type: markdown
+            grid_options:
+              columns: full
+            content: >-
+              Wijzigingen worden direct opgeslagen en toegepast. *Onder drempel*: laden start bij
+              prijs ≤ drempel − offset onder en stopt bij prijs ≥ drempel + offset boven.
+
       # ---------------------------------------------------------------- grafiek
       - type: grid
         column_span: 4
