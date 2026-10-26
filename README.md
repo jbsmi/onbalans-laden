@@ -90,6 +90,14 @@ Wijzig je het **aantal** blokken (menu *Indeling tijdblokken*), dan worden de en
 blokken toe aan of verwijder ze uit het dashboard.
 Let op: een open optiemenu dat je daarna opslaat, overschrijft dashboardwijzigingen die je in de tussentijd deed.
 
+### Gebruikersdashboard "Onbalans energie"
+
+[`dashboard/onbalans_energie.yaml`](dashboard/onbalans_energie.yaml): status in gewone taal, tegels (prijs, status,
+laden, kW, accu-SOC, drempel, tijdblok, automatisch aan/uit), één grafiek van de laatste 24 uur met onbalansprijs,
+start- en stopgrens, laadmomenten (groen vlak), laadvermogen en SOC, en een tabel met de laatste start/stop-momenten.
+Vereist **apexcharts-card** (HACS → Frontend). De SOC-sensor staat op `sensor.rs_system_0_dc_battery_charge`;
+vervang die als je een andere accu wilt tonen.
+
 ## MQTT-commando's
 
 Eén bericht per regel: `topic = payload`. Regels die met `#` beginnen zijn commentaar.
