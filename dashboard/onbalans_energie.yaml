@@ -171,6 +171,251 @@ views:
               Wijzigingen worden direct opgeslagen en toegepast. *Onder drempel*: laden start bij
               prijs ≤ drempel − offset onder en stopt bij prijs ≥ drempel + offset boven.
 
+      # ---------------------------------------------------------------- overige tijdblokken
+      # Vereist helper (Schakelaar) "Onbalans overige blokken tonen" -> input_boolean.onbalans_overige_blokken_tonen
+      - type: grid
+        column_span: 4
+        cards:
+        - type: heading
+          heading: Overige tijdblokken (2 t/m 9)
+          icon: mdi:calendar-clock
+          tap_action: &id001
+            action: perform-action
+            perform_action: input_boolean.toggle
+            target:
+              entity_id: input_boolean.onbalans_overige_blokken_tonen
+          badges:
+          - type: entity
+            entity: input_boolean.onbalans_overige_blokken_tonen
+            icon: mdi:chevron-down
+            show_state: false
+            show_icon: true
+            color: none
+            tap_action: *id001
+            visibility:
+            - condition: state
+              entity: input_boolean.onbalans_overige_blokken_tonen
+              state: 'off'
+          - type: entity
+            entity: input_boolean.onbalans_overige_blokken_tonen
+            icon: mdi:chevron-up
+            show_state: false
+            show_icon: true
+            color: none
+            tap_action: *id001
+            visibility: &id002
+            - condition: state
+              entity: input_boolean.onbalans_overige_blokken_tonen
+              state: 'on'
+        - type: entities
+          title: Blok 2
+          state_color: true
+          show_header_toggle: false
+          visibility: *id002
+          entities:
+          - entity: switch.onbalans_laden_blok_2_actief
+            name: Tijdblok actief
+          - entity: time.onbalans_laden_blok_2_start
+            name: Begintijd
+          - entity: time.onbalans_laden_blok_2_eind
+            name: Eindtijd
+          - entity: select.onbalans_laden_blok_2_modus
+            name: Laden als prijs
+          - entity: number.onbalans_laden_blok_2_drempel
+            name: Drempel
+          - entity: number.onbalans_laden_blok_2_offset_onder
+            name: Offset onder drempel
+          - entity: number.onbalans_laden_blok_2_offset_boven
+            name: Offset boven drempel
+          - entity: number.onbalans_laden_blok_2_vertraging_start
+            name: Vertraging vóór start
+          - entity: number.onbalans_laden_blok_2_vertraging_stop
+            name: Vertraging vóór stop
+          - entity: number.onbalans_laden_blok_2_vermogen
+            name: Laadvermogen
+        - type: entities
+          title: Blok 3
+          state_color: true
+          show_header_toggle: false
+          visibility: *id002
+          entities:
+          - entity: switch.onbalans_laden_blok_3_actief
+            name: Tijdblok actief
+          - entity: time.onbalans_laden_blok_3_start
+            name: Begintijd
+          - entity: time.onbalans_laden_blok_3_eind
+            name: Eindtijd
+          - entity: select.onbalans_laden_blok_3_modus
+            name: Laden als prijs
+          - entity: number.onbalans_laden_blok_3_drempel
+            name: Drempel
+          - entity: number.onbalans_laden_blok_3_offset_onder
+            name: Offset onder drempel
+          - entity: number.onbalans_laden_blok_3_offset_boven
+            name: Offset boven drempel
+          - entity: number.onbalans_laden_blok_3_vertraging_start
+            name: Vertraging vóór start
+          - entity: number.onbalans_laden_blok_3_vertraging_stop
+            name: Vertraging vóór stop
+          - entity: number.onbalans_laden_blok_3_vermogen
+            name: Laadvermogen
+        - type: entities
+          title: Blok 4
+          state_color: true
+          show_header_toggle: false
+          visibility: *id002
+          entities:
+          - entity: switch.onbalans_laden_blok_4_actief
+            name: Tijdblok actief
+          - entity: time.onbalans_laden_blok_4_start
+            name: Begintijd
+          - entity: time.onbalans_laden_blok_4_eind
+            name: Eindtijd
+          - entity: select.onbalans_laden_blok_4_modus
+            name: Laden als prijs
+          - entity: number.onbalans_laden_blok_4_drempel
+            name: Drempel
+          - entity: number.onbalans_laden_blok_4_offset_onder
+            name: Offset onder drempel
+          - entity: number.onbalans_laden_blok_4_offset_boven
+            name: Offset boven drempel
+          - entity: number.onbalans_laden_blok_4_vertraging_start
+            name: Vertraging vóór start
+          - entity: number.onbalans_laden_blok_4_vertraging_stop
+            name: Vertraging vóór stop
+          - entity: number.onbalans_laden_blok_4_vermogen
+            name: Laadvermogen
+        - type: entities
+          title: Blok 5
+          state_color: true
+          show_header_toggle: false
+          visibility: *id002
+          entities:
+          - entity: switch.onbalans_laden_blok_5_actief
+            name: Tijdblok actief
+          - entity: time.onbalans_laden_blok_5_start
+            name: Begintijd
+          - entity: time.onbalans_laden_blok_5_eind
+            name: Eindtijd
+          - entity: select.onbalans_laden_blok_5_modus
+            name: Laden als prijs
+          - entity: number.onbalans_laden_blok_5_drempel
+            name: Drempel
+          - entity: number.onbalans_laden_blok_5_offset_onder
+            name: Offset onder drempel
+          - entity: number.onbalans_laden_blok_5_offset_boven
+            name: Offset boven drempel
+          - entity: number.onbalans_laden_blok_5_vertraging_start
+            name: Vertraging vóór start
+          - entity: number.onbalans_laden_blok_5_vertraging_stop
+            name: Vertraging vóór stop
+          - entity: number.onbalans_laden_blok_5_vermogen
+            name: Laadvermogen
+        - type: entities
+          title: Blok 6
+          state_color: true
+          show_header_toggle: false
+          visibility: *id002
+          entities:
+          - entity: switch.onbalans_laden_blok_6_actief
+            name: Tijdblok actief
+          - entity: time.onbalans_laden_blok_6_start
+            name: Begintijd
+          - entity: time.onbalans_laden_blok_6_eind
+            name: Eindtijd
+          - entity: select.onbalans_laden_blok_6_modus
+            name: Laden als prijs
+          - entity: number.onbalans_laden_blok_6_drempel
+            name: Drempel
+          - entity: number.onbalans_laden_blok_6_offset_onder
+            name: Offset onder drempel
+          - entity: number.onbalans_laden_blok_6_offset_boven
+            name: Offset boven drempel
+          - entity: number.onbalans_laden_blok_6_vertraging_start
+            name: Vertraging vóór start
+          - entity: number.onbalans_laden_blok_6_vertraging_stop
+            name: Vertraging vóór stop
+          - entity: number.onbalans_laden_blok_6_vermogen
+            name: Laadvermogen
+        - type: entities
+          title: Blok 7
+          state_color: true
+          show_header_toggle: false
+          visibility: *id002
+          entities:
+          - entity: switch.onbalans_laden_blok_7_actief
+            name: Tijdblok actief
+          - entity: time.onbalans_laden_blok_7_start
+            name: Begintijd
+          - entity: time.onbalans_laden_blok_7_eind
+            name: Eindtijd
+          - entity: select.onbalans_laden_blok_7_modus
+            name: Laden als prijs
+          - entity: number.onbalans_laden_blok_7_drempel
+            name: Drempel
+          - entity: number.onbalans_laden_blok_7_offset_onder
+            name: Offset onder drempel
+          - entity: number.onbalans_laden_blok_7_offset_boven
+            name: Offset boven drempel
+          - entity: number.onbalans_laden_blok_7_vertraging_start
+            name: Vertraging vóór start
+          - entity: number.onbalans_laden_blok_7_vertraging_stop
+            name: Vertraging vóór stop
+          - entity: number.onbalans_laden_blok_7_vermogen
+            name: Laadvermogen
+        - type: entities
+          title: Blok 8
+          state_color: true
+          show_header_toggle: false
+          visibility: *id002
+          entities:
+          - entity: switch.onbalans_laden_blok_8_actief
+            name: Tijdblok actief
+          - entity: time.onbalans_laden_blok_8_start
+            name: Begintijd
+          - entity: time.onbalans_laden_blok_8_eind
+            name: Eindtijd
+          - entity: select.onbalans_laden_blok_8_modus
+            name: Laden als prijs
+          - entity: number.onbalans_laden_blok_8_drempel
+            name: Drempel
+          - entity: number.onbalans_laden_blok_8_offset_onder
+            name: Offset onder drempel
+          - entity: number.onbalans_laden_blok_8_offset_boven
+            name: Offset boven drempel
+          - entity: number.onbalans_laden_blok_8_vertraging_start
+            name: Vertraging vóór start
+          - entity: number.onbalans_laden_blok_8_vertraging_stop
+            name: Vertraging vóór stop
+          - entity: number.onbalans_laden_blok_8_vermogen
+            name: Laadvermogen
+        - type: entities
+          title: Blok 9
+          state_color: true
+          show_header_toggle: false
+          visibility: *id002
+          entities:
+          - entity: switch.onbalans_laden_blok_9_actief
+            name: Tijdblok actief
+          - entity: time.onbalans_laden_blok_9_start
+            name: Begintijd
+          - entity: time.onbalans_laden_blok_9_eind
+            name: Eindtijd
+          - entity: select.onbalans_laden_blok_9_modus
+            name: Laden als prijs
+          - entity: number.onbalans_laden_blok_9_drempel
+            name: Drempel
+          - entity: number.onbalans_laden_blok_9_offset_onder
+            name: Offset onder drempel
+          - entity: number.onbalans_laden_blok_9_offset_boven
+            name: Offset boven drempel
+          - entity: number.onbalans_laden_blok_9_vertraging_start
+            name: Vertraging vóór start
+          - entity: number.onbalans_laden_blok_9_vertraging_stop
+            name: Vertraging vóór stop
+          - entity: number.onbalans_laden_blok_9_vermogen
+            name: Laadvermogen
+
       # ---------------------------------------------------------------- grafiek
       - type: grid
         column_span: 4
