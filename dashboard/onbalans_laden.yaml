@@ -1,0 +1,317 @@
+# Dashboard "Onbalans laden"
+# Gebruik: Instellingen > Dashboards > Dashboard toevoegen > "Nieuw dashboard vanaf nul"
+# > openen > potlood > drie puntjes > "Ruwe configuratie-editor" > alles vervangen door deze inhoud > Opslaan.
+# Wijzigingen in de blok-velden worden direct opgeslagen en toegepast (geen herstart/herlaad nodig).
+title: Onbalans laden
+views:
+  - title: Tijdblokken
+    path: tijdblokken
+    icon: mdi:battery-clock
+    type: sections
+    max_columns: 4
+    sections:
+      - type: grid
+        column_span: 4
+        cards:
+          - type: tile
+            entity: sensor.onbalans_laden_onbalansprijs
+          - type: tile
+            entity: sensor.onbalans_laden_status
+          - type: tile
+            entity: sensor.onbalans_laden_actief_tijdblok
+          - type: tile
+            entity: sensor.onbalans_laden_laadvermogen_setpoint
+          - type: tile
+            entity: switch.onbalans_laden_automatische_sturing
+            features:
+              - type: toggle
+          - type: tile
+            entity: switch.onbalans_laden_testmodus_niet_versturen
+            features:
+              - type: toggle
+          - type: markdown
+            grid_options:
+              columns: full
+            content: |
+              {%- set s = 'sensor.onbalans_laden_actief_tijdblok' %}
+              {%- set blokken = state_attr(s, 'blokken') or [] %}
+              {%- set nu = state_attr(s, 'actief_nr') %}
+              | # | Tijd | Aan | Laden als prijs | Drempel | Start bij | Stop bij | Vertraging start / stop | kW |
+              |:-:|:--|:-:|:--|--:|--:|--:|:-:|--:|
+              {% for b in blokken -%}
+              {%- set onder = b.modus == 'below' -%}
+              {%- set laag = b.drempel - b.offset_onder -%}
+              {%- set hoog = b.drempel + b.offset_boven -%}
+              | {{ '**▶ ' ~ b.nr ~ '**' if b.nr == nu else b.nr }} | {{ b.start }}–{{ b.eind }} | {{ '✅' if b.actief else '⛔' }} | {{ '≤ (onder)' if onder else '≥ (boven)' }} | {{ b.drempel }} | {{ (laag if onder else hoog) | round(2) }} | {{ (hoog if onder else laag) | round(2) }} | {{ b.vertraging_start }} s / {{ b.vertraging_stop }} s | {{ b.vermogen_kw }} |
+              {% endfor %}
+              *Prijzen in €/MWh. ▶ = actief blok. Pas de waarden aan in de blokken hieronder; ze worden direct opgeslagen.*
+      - type: grid
+        cards:
+          - type: heading
+            heading: Blok 1
+            icon: mdi:numeric-1-box-outline
+          - type: entities
+            grid_options:
+              columns: full
+            state_color: true
+            entities:
+              - entity: switch.onbalans_laden_blok_1_actief
+                name: Actief
+              - entity: time.onbalans_laden_blok_1_start
+                name: Start
+              - entity: time.onbalans_laden_blok_1_eind
+                name: Eind
+              - entity: select.onbalans_laden_blok_1_modus
+                name: Laden als prijs
+              - entity: number.onbalans_laden_blok_1_drempel
+                name: Drempel
+              - entity: number.onbalans_laden_blok_1_offset_onder
+                name: Offset onder
+              - entity: number.onbalans_laden_blok_1_offset_boven
+                name: Offset boven
+              - entity: number.onbalans_laden_blok_1_vertraging_start
+                name: Vertraging start
+              - entity: number.onbalans_laden_blok_1_vertraging_stop
+                name: Vertraging stop
+              - entity: number.onbalans_laden_blok_1_vermogen
+                name: Vermogen
+      - type: grid
+        cards:
+          - type: heading
+            heading: Blok 2
+            icon: mdi:numeric-2-box-outline
+          - type: entities
+            grid_options:
+              columns: full
+            state_color: true
+            entities:
+              - entity: switch.onbalans_laden_blok_2_actief
+                name: Actief
+              - entity: time.onbalans_laden_blok_2_start
+                name: Start
+              - entity: time.onbalans_laden_blok_2_eind
+                name: Eind
+              - entity: select.onbalans_laden_blok_2_modus
+                name: Laden als prijs
+              - entity: number.onbalans_laden_blok_2_drempel
+                name: Drempel
+              - entity: number.onbalans_laden_blok_2_offset_onder
+                name: Offset onder
+              - entity: number.onbalans_laden_blok_2_offset_boven
+                name: Offset boven
+              - entity: number.onbalans_laden_blok_2_vertraging_start
+                name: Vertraging start
+              - entity: number.onbalans_laden_blok_2_vertraging_stop
+                name: Vertraging stop
+              - entity: number.onbalans_laden_blok_2_vermogen
+                name: Vermogen
+      - type: grid
+        cards:
+          - type: heading
+            heading: Blok 3
+            icon: mdi:numeric-3-box-outline
+          - type: entities
+            grid_options:
+              columns: full
+            state_color: true
+            entities:
+              - entity: switch.onbalans_laden_blok_3_actief
+                name: Actief
+              - entity: time.onbalans_laden_blok_3_start
+                name: Start
+              - entity: time.onbalans_laden_blok_3_eind
+                name: Eind
+              - entity: select.onbalans_laden_blok_3_modus
+                name: Laden als prijs
+              - entity: number.onbalans_laden_blok_3_drempel
+                name: Drempel
+              - entity: number.onbalans_laden_blok_3_offset_onder
+                name: Offset onder
+              - entity: number.onbalans_laden_blok_3_offset_boven
+                name: Offset boven
+              - entity: number.onbalans_laden_blok_3_vertraging_start
+                name: Vertraging start
+              - entity: number.onbalans_laden_blok_3_vertraging_stop
+                name: Vertraging stop
+              - entity: number.onbalans_laden_blok_3_vermogen
+                name: Vermogen
+      - type: grid
+        cards:
+          - type: heading
+            heading: Blok 4
+            icon: mdi:numeric-4-box-outline
+          - type: entities
+            grid_options:
+              columns: full
+            state_color: true
+            entities:
+              - entity: switch.onbalans_laden_blok_4_actief
+                name: Actief
+              - entity: time.onbalans_laden_blok_4_start
+                name: Start
+              - entity: time.onbalans_laden_blok_4_eind
+                name: Eind
+              - entity: select.onbalans_laden_blok_4_modus
+                name: Laden als prijs
+              - entity: number.onbalans_laden_blok_4_drempel
+                name: Drempel
+              - entity: number.onbalans_laden_blok_4_offset_onder
+                name: Offset onder
+              - entity: number.onbalans_laden_blok_4_offset_boven
+                name: Offset boven
+              - entity: number.onbalans_laden_blok_4_vertraging_start
+                name: Vertraging start
+              - entity: number.onbalans_laden_blok_4_vertraging_stop
+                name: Vertraging stop
+              - entity: number.onbalans_laden_blok_4_vermogen
+                name: Vermogen
+      - type: grid
+        cards:
+          - type: heading
+            heading: Blok 5
+            icon: mdi:numeric-5-box-outline
+          - type: entities
+            grid_options:
+              columns: full
+            state_color: true
+            entities:
+              - entity: switch.onbalans_laden_blok_5_actief
+                name: Actief
+              - entity: time.onbalans_laden_blok_5_start
+                name: Start
+              - entity: time.onbalans_laden_blok_5_eind
+                name: Eind
+              - entity: select.onbalans_laden_blok_5_modus
+                name: Laden als prijs
+              - entity: number.onbalans_laden_blok_5_drempel
+                name: Drempel
+              - entity: number.onbalans_laden_blok_5_offset_onder
+                name: Offset onder
+              - entity: number.onbalans_laden_blok_5_offset_boven
+                name: Offset boven
+              - entity: number.onbalans_laden_blok_5_vertraging_start
+                name: Vertraging start
+              - entity: number.onbalans_laden_blok_5_vertraging_stop
+                name: Vertraging stop
+              - entity: number.onbalans_laden_blok_5_vermogen
+                name: Vermogen
+      - type: grid
+        cards:
+          - type: heading
+            heading: Blok 6
+            icon: mdi:numeric-6-box-outline
+          - type: entities
+            grid_options:
+              columns: full
+            state_color: true
+            entities:
+              - entity: switch.onbalans_laden_blok_6_actief
+                name: Actief
+              - entity: time.onbalans_laden_blok_6_start
+                name: Start
+              - entity: time.onbalans_laden_blok_6_eind
+                name: Eind
+              - entity: select.onbalans_laden_blok_6_modus
+                name: Laden als prijs
+              - entity: number.onbalans_laden_blok_6_drempel
+                name: Drempel
+              - entity: number.onbalans_laden_blok_6_offset_onder
+                name: Offset onder
+              - entity: number.onbalans_laden_blok_6_offset_boven
+                name: Offset boven
+              - entity: number.onbalans_laden_blok_6_vertraging_start
+                name: Vertraging start
+              - entity: number.onbalans_laden_blok_6_vertraging_stop
+                name: Vertraging stop
+              - entity: number.onbalans_laden_blok_6_vermogen
+                name: Vermogen
+      - type: grid
+        cards:
+          - type: heading
+            heading: Blok 7
+            icon: mdi:numeric-7-box-outline
+          - type: entities
+            grid_options:
+              columns: full
+            state_color: true
+            entities:
+              - entity: switch.onbalans_laden_blok_7_actief
+                name: Actief
+              - entity: time.onbalans_laden_blok_7_start
+                name: Start
+              - entity: time.onbalans_laden_blok_7_eind
+                name: Eind
+              - entity: select.onbalans_laden_blok_7_modus
+                name: Laden als prijs
+              - entity: number.onbalans_laden_blok_7_drempel
+                name: Drempel
+              - entity: number.onbalans_laden_blok_7_offset_onder
+                name: Offset onder
+              - entity: number.onbalans_laden_blok_7_offset_boven
+                name: Offset boven
+              - entity: number.onbalans_laden_blok_7_vertraging_start
+                name: Vertraging start
+              - entity: number.onbalans_laden_blok_7_vertraging_stop
+                name: Vertraging stop
+              - entity: number.onbalans_laden_blok_7_vermogen
+                name: Vermogen
+      - type: grid
+        cards:
+          - type: heading
+            heading: Blok 8
+            icon: mdi:numeric-8-box-outline
+          - type: entities
+            grid_options:
+              columns: full
+            state_color: true
+            entities:
+              - entity: switch.onbalans_laden_blok_8_actief
+                name: Actief
+              - entity: time.onbalans_laden_blok_8_start
+                name: Start
+              - entity: time.onbalans_laden_blok_8_eind
+                name: Eind
+              - entity: select.onbalans_laden_blok_8_modus
+                name: Laden als prijs
+              - entity: number.onbalans_laden_blok_8_drempel
+                name: Drempel
+              - entity: number.onbalans_laden_blok_8_offset_onder
+                name: Offset onder
+              - entity: number.onbalans_laden_blok_8_offset_boven
+                name: Offset boven
+              - entity: number.onbalans_laden_blok_8_vertraging_start
+                name: Vertraging start
+              - entity: number.onbalans_laden_blok_8_vertraging_stop
+                name: Vertraging stop
+              - entity: number.onbalans_laden_blok_8_vermogen
+                name: Vermogen
+      - type: grid
+        cards:
+          - type: heading
+            heading: Blok 9
+            icon: mdi:numeric-9-box-outline
+          - type: entities
+            grid_options:
+              columns: full
+            state_color: true
+            entities:
+              - entity: switch.onbalans_laden_blok_9_actief
+                name: Actief
+              - entity: time.onbalans_laden_blok_9_start
+                name: Start
+              - entity: time.onbalans_laden_blok_9_eind
+                name: Eind
+              - entity: select.onbalans_laden_blok_9_modus
+                name: Laden als prijs
+              - entity: number.onbalans_laden_blok_9_drempel
+                name: Drempel
+              - entity: number.onbalans_laden_blok_9_offset_onder
+                name: Offset onder
+              - entity: number.onbalans_laden_blok_9_offset_boven
+                name: Offset boven
+              - entity: number.onbalans_laden_blok_9_vertraging_start
+                name: Vertraging start
+              - entity: number.onbalans_laden_blok_9_vertraging_stop
+                name: Vertraging stop
+              - entity: number.onbalans_laden_blok_9_vermogen
+                name: Vermogen
