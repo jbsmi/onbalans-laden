@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 DOMAIN = "onbalans_laden"
-PLATFORMS = ["sensor", "binary_sensor", "switch"]
+PLATFORMS = ["sensor", "binary_sensor", "switch", "number", "select", "time"]
 
 DEFAULT_URL = "https://services.tenergy.nl/public.aspx/actualimbalanceprices"
 
@@ -40,6 +40,20 @@ B_OFFSET_HIGH = "offset_high"
 B_DELAY_ON = "delay_on"
 B_DELAY_OFF = "delay_off"
 B_POWER = "power_kw"
+
+# entity-id achtervoegsel per blokinstelling (number/select/switch/time per tijdblok)
+BLOCK_ENTITY_SLUG = {
+    B_START: "start",
+    B_END: "eind",
+    B_ENABLED: "actief",
+    B_MODE: "modus",
+    B_THRESHOLD: "drempel",
+    B_OFFSET_LOW: "offset_onder",
+    B_OFFSET_HIGH: "offset_boven",
+    B_DELAY_ON: "vertraging_start",
+    B_DELAY_OFF: "vertraging_stop",
+    B_POWER: "vermogen",
+}
 
 MODE_BELOW = "below"  # laden als prijs laag is
 MODE_ABOVE = "above"  # laden als prijs hoog is

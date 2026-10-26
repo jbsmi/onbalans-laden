@@ -140,6 +140,24 @@ class BlockSensor(OnbalansEntity, SensorEntity):
             "vertraging_start_s": b.get(B_DELAY_ON),
             "vertraging_stop_s": b.get(B_DELAY_OFF),
             "vermogen_kw": b.get(B_POWER),
+            "actief_nr": None if self.controller.block_index is None else self.controller.block_index + 1,
+            # gestructureerd overzicht, gebruikt door de tabel op het dashboard
+            "blokken": [
+                {
+                    "nr": i + 1,
+                    "start": x[B_START],
+                    "eind": x[B_END],
+                    "actief": x[B_ENABLED],
+                    "modus": x[B_MODE],
+                    "drempel": x[B_THRESHOLD],
+                    "offset_onder": x[B_OFFSET_LOW],
+                    "offset_boven": x[B_OFFSET_HIGH],
+                    "vertraging_start": x[B_DELAY_ON],
+                    "vertraging_stop": x[B_DELAY_OFF],
+                    "vermogen_kw": x[B_POWER],
+                }
+                for i, x in enumerate(self.controller.blocks)
+            ],
             "alle_blokken": [
                 f"{i + 1}: {x[B_START]}-{x[B_END]} {'≥' if x[B_MODE] == MODE_ABOVE else '≤'}{x[B_THRESHOLD]:g} "
                 f"(-{x[B_OFFSET_LOW]:g}/+{x[B_OFFSET_HIGH]:g}) {x[B_POWER]:g}kW{'' if x[B_ENABLED] else ' uit'}"

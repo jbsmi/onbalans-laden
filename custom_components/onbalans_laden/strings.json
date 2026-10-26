@@ -187,6 +187,46 @@
       },
       "testmodus": {
         "name": "Test mode (don't publish)"
+      },
+      "blok_actief": {
+        "name": "Block {nr} enabled"
+      }
+    },
+    "time": {
+      "blok_start": {
+        "name": "Block {nr} start"
+      },
+      "blok_eind": {
+        "name": "Block {nr} end"
+      }
+    },
+    "select": {
+      "blok_modus": {
+        "name": "Block {nr} charge when price",
+        "state": {
+          "below": "below threshold",
+          "above": "above threshold"
+        }
+      }
+    },
+    "number": {
+      "blok_drempel": {
+        "name": "Block {nr} threshold"
+      },
+      "blok_offset_onder": {
+        "name": "Block {nr} offset below"
+      },
+      "blok_offset_boven": {
+        "name": "Block {nr} offset above"
+      },
+      "blok_vertraging_start": {
+        "name": "Block {nr} start delay"
+      },
+      "blok_vertraging_stop": {
+        "name": "Block {nr} stop delay"
+      },
+      "blok_vermogen": {
+        "name": "Block {nr} power"
       }
     }
   }

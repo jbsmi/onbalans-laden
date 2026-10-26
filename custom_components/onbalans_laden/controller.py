@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 from collections import deque
 from datetime import datetime, timedelta
 import logging
@@ -19,6 +20,13 @@ from .const import (
     CONF_AC_PHASES,
     CONF_AC_VOLTAGE,
     CONF_BATTERY_VOLTAGE,
+    B_DELAY_OFF,
+    B_DELAY_ON,
+    B_ENABLED,
+    B_END,
+    B_MODE,
+    B_POWER,
+    B_START,
     CONF_BLOCKS,
     CONF_EFFICIENCY,
     CONF_INVERTERS,
@@ -32,10 +40,21 @@ from .const import (
     CONF_STOP_COMMANDS,
     CONF_STOP_ON_STARTUP,
     DEFAULT_GENERAL,
+    MODE_ABOVE,
+    MODE_BELOW,
     SIGNAL_UPDATE,
 )
 from .coordinator import PriceCoordinator
-from .logic import ChargeStateMachine, Decision, Limits, find_block, parse_commands, render_payload, row_age_minutes
+from .logic import (
+    ChargeStateMachine,
+    Decision,
+    Limits,
+    find_block,
+    parse_commands,
+    parse_hhmm,
+    render_payload,
+    row_age_minutes,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,6 +77,8 @@ class ChargeController:
         self.history: deque[dict[str, Any]] = deque(maxlen=15)
         self._unsubs: list[CALLBACK_TYPE] = []
         self._lock = asyncio.Lock()
+        # aantal opties-wijzigingen vanuit de blok-entiteiten waarvoor GEEN herlaad nodig is
+        self._live_updates = 0
 
     # ---------------- configuratie ----------------
     @property
@@ -135,6 +156,40 @@ class ChargeController:
                 await self._send("start", self.sm.active_power_kw, "testmodus uitgezet")
             self.test_mode = on
         self._notify()
+
+    # ---------------- tijdblokken live wijzigen (dashboard-entiteiten) ----------------
+    def consume_live_update(self) -> bool:
+        """True als de laatste opties-wijziging van een blok-entiteit kwam (dan niet herladen)."""
+        if self._live_updates > 0:
+            self._live_updates -= 1
+            return True
+        return False
+
+    async def async_set_block_value(self, idx: int, key: str, value: Any) -> None:
+        """Eén waarde van een tijdblok wijzigen, opslaan in de opties en direct toepassen."""
+        if idx >= len(self.blocks):
+            raise ValueError(f"Tijdblok {idx + 1} bestaat niet")
+        if key in (B_START, B_END):
+            t = parse_hhmm(str(value)[:5])
+            value = f"{t.hour:02d}:{t.minute:02d}"
+        elif key == B_ENABLED:
+            value = bool(value)
+        elif key == B_MODE:
+            if value not in (MODE_BELOW, MODE_ABOVE):
+                raise ValueError(f"Ongeldige modus: {value}")
+        elif key in (B_DELAY_ON, B_DELAY_OFF):
+            value = int(value)
+        elif key == B_POWER:
+            value = min(float(value), self.limits.max_kw)
+        else:
+            value = float(value)
+
+        new_opts = copy.deepcopy(dict(self.entry.options))
+        new_opts[CONF_BLOCKS][idx][key] = value
+        self._live_updates += 1
+        if not self.hass.config_entries.async_update_entry(self.entry, options=new_opts):
+            self._live_updates -= 1  # niets veranderd -> er komt ook geen update-listener
+        await self.async_evaluate()
 
     # ---------------- kern ----------------
     def _current_price(self, now: datetime) -> None:
