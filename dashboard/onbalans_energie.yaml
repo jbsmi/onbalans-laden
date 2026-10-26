@@ -1,0 +1,218 @@
+# Dashboard "Onbalans energie" – overzicht voor de gebruiker
+# Vereist: apexcharts-card (HACS > Frontend > "apexcharts-card").
+# Gebruik: Instellingen > Dashboards > Dashboard toevoegen > "Nieuw dashboard vanaf nul"
+# > openen > potlood > drie puntjes > "Ruwe configuratie-editor" > alles vervangen door deze inhoud > Opslaan.
+# SOC-sensor: sensor.rs_system_0_dc_battery_charge – vervang deze overal als je een andere accu wilt tonen.
+title: Onbalans energie
+views:
+  - title: Overzicht
+    path: overzicht
+    icon: mdi:scale-unbalanced
+    type: sections
+    max_columns: 4
+    sections:
+      # ---------------------------------------------------------------- nu
+      - type: grid
+        column_span: 4
+        cards:
+          - type: heading
+            heading: Nu
+            icon: mdi:flash
+          - type: markdown
+            grid_options:
+              columns: full
+            content: |
+              {%- set p = states('sensor.onbalans_laden_onbalansprijs') %}
+              {%- set eh = state_attr('sensor.onbalans_laden_onbalansprijs', 'eenheid') or '€/MWh' %}
+              {%- set st = states('sensor.onbalans_laden_status') %}
+              {%- set start = state_attr('sensor.onbalans_laden_drempel', 'startgrens') %}
+              {%- set stop = state_attr('sensor.onbalans_laden_drempel', 'stopgrens') %}
+              {%- set kw = states('sensor.onbalans_laden_laadvermogen_setpoint') | float(0) %}
+              {%- set soc = states('sensor.rs_system_0_dc_battery_charge') %}
+              {%- set teksten = {
+                'laden': '🔋 **De accu wordt geladen** met ' ~ kw ~ ' kW.',
+                'wachten': '⏳ **Wachten op een gunstige prijs.**',
+                'startvertraging': '⏱️ **Prijs is gunstig** – laden start zo (startvertraging).',
+                'stopvertraging': '⏱️ **Prijs is niet meer gunstig** – laden stopt zo (stopvertraging).',
+                'uit': '⛔ **Automatische sturing staat uit** of het tijdblok is uitgeschakeld.',
+                'geen_tijdblok': '🕒 **Geen tijdblok actief** op dit moment.',
+                'geen_prijs': '⚠️ **Geen actuele onbalansprijs** – er wordt niet geladen.'
+              } %}
+              {{ teksten.get(st, st) }}
+
+              Onbalansprijs nu: **{{ p }} {{ eh }}** · Accu: **{{ soc }} %**
+              {%- if start is not none %}
+
+              Laden start bij prijs **≤ {{ start }}** en stopt bij **≥ {{ stop }} {{ eh }}**
+              (tijdblok {{ states('sensor.onbalans_laden_actief_tijdblok') }}).
+              {%- endif %}
+              {%- if is_state('switch.onbalans_laden_testmodus_niet_versturen', 'on') %}
+
+              🧪 *Testmodus staat aan: er worden geen commando's naar de omvormers gestuurd.*
+              {%- endif %}
+          - type: tile
+            entity: sensor.onbalans_laden_onbalansprijs
+            name: Onbalansprijs
+            color: blue
+          - type: tile
+            entity: sensor.onbalans_laden_status
+            name: Status
+            color: amber
+          - type: tile
+            entity: binary_sensor.onbalans_laden_laden
+            name: Laden
+            color: green
+          - type: tile
+            entity: sensor.onbalans_laden_laadvermogen_setpoint
+            name: Laadvermogen
+            color: green
+          - type: tile
+            entity: sensor.rs_system_0_dc_battery_charge
+            name: Accu (SOC)
+            icon: mdi:battery-70
+            color: teal
+          - type: tile
+            entity: sensor.onbalans_laden_drempel
+            name: Drempel
+            color: grey
+          - type: tile
+            entity: sensor.onbalans_laden_actief_tijdblok
+            name: Tijdblok
+            color: grey
+          - type: tile
+            entity: switch.onbalans_laden_automatische_sturing
+            name: Automatisch laden
+            features:
+              - type: toggle
+
+      # ---------------------------------------------------------------- grafiek
+      - type: grid
+        column_span: 4
+        cards:
+          - type: heading
+            heading: Verloop
+            icon: mdi:chart-line
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            graph_span: 24h
+            header:
+              show: true
+              title: Onbalansprijs, laden en accu – laatste 24 uur
+              show_states: true
+              colorize_states: true
+            now:
+              show: true
+              label: nu
+            apex_config:
+              chart:
+                height: 420
+              legend:
+                show: true
+              tooltip:
+                shared: true
+            yaxis:
+              - id: prijs
+                decimals: 1
+                apex_config:
+                  title:
+                    text: Prijs
+              - id: kw
+                opposite: true
+                min: 0
+                decimals: 0
+                apex_config:
+                  title:
+                    text: kW
+              - id: soc
+                opposite: true
+                min: 0
+                max: 100
+                decimals: 0
+                apex_config:
+                  title:
+                    text: SOC %
+              - id: laden
+                show: false
+                min: 0
+                max: 1
+            series:
+              - entity: binary_sensor.onbalans_laden_laden
+                name: Laden aan
+                yaxis_id: laden
+                type: area
+                curve: stepline
+                color: '#4caf50'
+                opacity: 0.15
+                stroke_width: 0
+                transform: "return x === 'on' ? 1 : 0;"
+                show:
+                  in_header: false
+                  legend_value: false
+              - entity: sensor.onbalans_laden_onbalansprijs
+                name: Onbalansprijs
+                yaxis_id: prijs
+                type: line
+                curve: stepline
+                color: '#2196f3'
+                stroke_width: 2
+                extend_to: now
+              - entity: sensor.onbalans_laden_drempel
+                attribute: startgrens
+                name: Startgrens
+                yaxis_id: prijs
+                type: line
+                curve: stepline
+                color: '#4caf50'
+                stroke_width: 1
+                show:
+                  in_header: false
+              - entity: sensor.onbalans_laden_drempel
+                attribute: stopgrens
+                name: Stopgrens
+                yaxis_id: prijs
+                type: line
+                curve: stepline
+                color: '#f44336'
+                stroke_width: 1
+                show:
+                  in_header: false
+              - entity: sensor.onbalans_laden_laadvermogen_setpoint
+                name: Laadvermogen
+                yaxis_id: kw
+                type: line
+                curve: stepline
+                color: '#ff9800'
+                stroke_width: 2
+              - entity: sensor.rs_system_0_dc_battery_charge
+                name: Accu SOC
+                yaxis_id: soc
+                type: line
+                curve: smooth
+                color: '#009688'
+                stroke_width: 2
+
+      # ---------------------------------------------------------------- laatste acties
+      - type: grid
+        column_span: 4
+        cards:
+          - type: heading
+            heading: Laatste start- en stopmomenten
+            icon: mdi:history
+          - type: markdown
+            grid_options:
+              columns: full
+            content: |
+              {%- set acties = state_attr('sensor.onbalans_laden_status', 'laatste_acties') or [] %}
+              {%- set eh = state_attr('sensor.onbalans_laden_onbalansprijs', 'eenheid') or '€/MWh' %}
+              {%- set f = {'€/MWh': 1, 'ct/kWh': 0.1, '€/kWh': 0.001}.get(eh, 1) %}
+              {%- if acties | count == 0 %}
+              Nog geen start- of stopmomenten sinds de laatste herstart.
+              {%- else %}
+              | Tijd | Actie | Vermogen | Prijs ({{ eh }}) | Reden |
+              |:--|:--|--:|--:|:--|
+              {% for a in acties[:10] -%}
+              | {{ a.tijd[11:16] }} {{ a.tijd[8:10] }}-{{ a.tijd[5:7] }} | {{ '▶️ start' if a.actie == 'start' else '⏹️ stop' }}{{ ' 🧪' if a.testmodus else '' }} | {{ a.vermogen_kw }} kW | {{ (a.prijs * f) | round(3) if a.prijs is number else '–' }} | {{ a.reden }} |
+              {% endfor %}
+              *🧪 = testmodus (niet verstuurd)*
+              {%- endif %}
