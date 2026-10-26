@@ -190,3 +190,49 @@ async def test_block_entities_live_edit(hass: HomeAssistant, mqtt_mock, aioclien
     reg = er.async_get(hass)
     assert reg.async_get("number.onbalans_laden_blok_4_drempel") is not None
     assert reg.async_get("number.onbalans_laden_blok_5_drempel") is None
+
+
+async def test_price_unit_ct_kwh(hass: HomeAssistant, mqtt_mock, aioclient_mock):
+    aioclient_mock.get(DEFAULT_URL, text=make_html(dt_util.now(), ["-25,00"]))
+    opts = default_options()
+    opts["price_unit"] = "ct_kwh"
+    opts["blocks"][0]["threshold"] = 30.0
+    for b in opts["blocks"]:
+        b["threshold"] = 30.0
+    entry = MockConfigEntry(domain=DOMAIN, data={}, options=opts)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    ctrl = hass.data[DOMAIN][entry.entry_id]
+    await ctrl.async_evaluate()
+    await hass.async_block_till_done()
+
+    from homeassistant.helpers import entity_registry as er
+    reg = er.async_get(hass)
+    price = hass.states.get(reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_onbalansprijs"))
+    assert float(price.state) == -2.5 and price.attributes["unit_of_measurement"] == "ct/kWh"
+    thr = hass.states.get(reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_drempel"))
+    assert float(thr.state) == 3.0
+
+    num = hass.states.get("number.onbalans_laden_blok_1_drempel")
+    assert float(num.state) == 3.0 and num.attributes["unit_of_measurement"] == "ct/kWh"
+    await hass.services.async_call("number", "set_value",
+        {"entity_id": "number.onbalans_laden_blok_1_drempel", "value": 1.5}, blocking=True)
+    await hass.async_block_till_done()
+    assert entry.options["blocks"][0]["threshold"] == 15.0  # intern €/MWh
+    assert ctrl.price == -25.0  # regeling werkt intern in €/MWh
+
+    # optiemenu toont ct/kWh en slaat €/MWh op
+    r = await hass.config_entries.options.async_init(entry.entry_id)
+    fid = r["flow_id"]
+    r = await hass.config_entries.options.async_configure(fid, {"next_step_id": "blokken"})
+    sel = list(r["data_schema"].schema.values())[0]
+    assert "ct/kWh" in sel.config["options"][0]["label"]
+    r = await hass.config_entries.options.async_configure(fid, {"block": "1"})
+    r = await hass.config_entries.options.async_configure(fid, {
+        "enabled": True, "mode": "below", "threshold": 2.2, "offset_low": 0.5, "offset_high": 1,
+        "delay_on": 0, "delay_off": 0, "power_kw": 5})
+    r = await hass.config_entries.options.async_configure(fid, {"next_step_id": "opslaan"})
+    await hass.async_block_till_done()
+    b = entry.options["blocks"][1]
+    assert b["threshold"] == 22.0 and b["offset_low"] == 5.0 and b["offset_high"] == 10.0
