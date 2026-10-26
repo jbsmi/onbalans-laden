@@ -187,6 +187,46 @@
       },
       "testmodus": {
         "name": "Testmodus (niet versturen)"
+      },
+      "blok_actief": {
+        "name": "Blok {nr} actief"
+      }
+    },
+    "time": {
+      "blok_start": {
+        "name": "Blok {nr} start"
+      },
+      "blok_eind": {
+        "name": "Blok {nr} eind"
+      }
+    },
+    "select": {
+      "blok_modus": {
+        "name": "Blok {nr} laden als prijs",
+        "state": {
+          "below": "onder drempel",
+          "above": "boven drempel"
+        }
+      }
+    },
+    "number": {
+      "blok_drempel": {
+        "name": "Blok {nr} drempel"
+      },
+      "blok_offset_onder": {
+        "name": "Blok {nr} offset onder"
+      },
+      "blok_offset_boven": {
+        "name": "Blok {nr} offset boven"
+      },
+      "blok_vertraging_start": {
+        "name": "Blok {nr} vertraging start"
+      },
+      "blok_vertraging_stop": {
+        "name": "Blok {nr} vertraging stop"
+      },
+      "blok_vermogen": {
+        "name": "Blok {nr} vermogen"
       }
     }
   }
