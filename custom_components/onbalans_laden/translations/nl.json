@@ -41,9 +41,9 @@
         "data": {
           "enabled": "Tijdblok actief",
           "mode": "Laden wanneer prijs",
-          "threshold": "Drempel onbalansprijs (€/MWh)",
-          "offset_low": "Offset onder drempel (€/MWh)",
-          "offset_high": "Offset boven drempel (€/MWh)",
+          "threshold": "Drempel onbalansprijs",
+          "offset_low": "Offset onder drempel",
+          "offset_high": "Offset boven drempel",
           "delay_on": "Vertraging vóór start (s)",
           "delay_off": "Vertraging vóór stop (s)",
           "power_kw": "Laadvermogen (kW)"
@@ -63,9 +63,9 @@
         "data": {
           "enabled": "Tijdblok actief",
           "mode": "Laden wanneer prijs",
-          "threshold": "Drempel onbalansprijs (€/MWh)",
-          "offset_low": "Offset onder drempel (€/MWh)",
-          "offset_high": "Offset boven drempel (€/MWh)",
+          "threshold": "Drempel onbalansprijs",
+          "offset_low": "Offset onder drempel",
+          "offset_high": "Offset boven drempel",
           "delay_on": "Vertraging vóór start (s)",
           "delay_off": "Vertraging vóór stop (s)",
           "power_kw": "Laadvermogen (kW)",
@@ -122,10 +122,12 @@
           "url": "URL onbalansprijzen",
           "scan_interval": "Ophaalinterval (s)",
           "price_column": "Prijskolom",
-          "stale_minutes": "Prijs verouderd na (min)"
+          "stale_minutes": "Prijs verouderd na (min)",
+          "price_unit": "Prijseenheid (weergave)"
         },
         "data_description": {
-          "stale_minutes": "Is de nieuwste regel ouder, dan wordt er niet (meer) geladen."
+          "stale_minutes": "Is de nieuwste regel ouder, dan wordt er niet (meer) geladen.",
+          "price_unit": "Alleen de weergave; de drempels worden intern in €/MWh bewaard en omgerekend. 1 €/MWh = 0,1 ct/kWh = 0,001 €/kWh. De MQTT-variabele 'price' blijft in €/MWh."
         }
       }
     },
@@ -146,6 +148,13 @@
         "afnemen": "Afnemen (inkoop)",
         "invoeden": "Invoeden",
         "max": "Hoogste van beide"
+      }
+    },
+    "price_unit": {
+      "options": {
+        "eur_mwh": "€/MWh (zoals Tenergy)",
+        "ct_kwh": "cent per kWh (ct/kWh)",
+        "eur_kwh": "€/kWh"
       }
     }
   },
