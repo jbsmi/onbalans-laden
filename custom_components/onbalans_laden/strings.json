@@ -41,9 +41,9 @@
         "data": {
           "enabled": "Time block active",
           "mode": "Charge when price is",
-          "threshold": "Imbalance price threshold (€/MWh)",
-          "offset_low": "Offset below threshold (€/MWh)",
-          "offset_high": "Offset above threshold (€/MWh)",
+          "threshold": "Imbalance price threshold",
+          "offset_low": "Offset below threshold",
+          "offset_high": "Offset above threshold",
           "delay_on": "Delay before start (s)",
           "delay_off": "Delay before stop (s)",
           "power_kw": "Charge power (kW)"
@@ -63,9 +63,9 @@
         "data": {
           "enabled": "Time block active",
           "mode": "Charge when price is",
-          "threshold": "Imbalance price threshold (€/MWh)",
-          "offset_low": "Offset below threshold (€/MWh)",
-          "offset_high": "Offset above threshold (€/MWh)",
+          "threshold": "Imbalance price threshold",
+          "offset_low": "Offset below threshold",
+          "offset_high": "Offset above threshold",
           "delay_on": "Delay before start (s)",
           "delay_off": "Delay before stop (s)",
           "power_kw": "Charge power (kW)",
@@ -122,10 +122,12 @@
           "url": "Imbalance price URL",
           "scan_interval": "Poll interval (s)",
           "price_column": "Price column",
-          "stale_minutes": "Price stale after (min)"
+          "stale_minutes": "Price stale after (min)",
+          "price_unit": "Price unit (display)"
         },
         "data_description": {
-          "stale_minutes": "If the newest row is older, charging stops."
+          "stale_minutes": "If the newest row is older, charging stops.",
+          "price_unit": "Display only; thresholds are stored in €/MWh and converted. 1 €/MWh = 0.1 ct/kWh = 0.001 €/kWh. The MQTT variable 'price' stays in €/MWh."
         }
       }
     },
@@ -146,6 +148,13 @@
         "afnemen": "Afnemen (offtake)",
         "invoeden": "Invoeden (feed-in)",
         "max": "Highest of both"
+      }
+    },
+    "price_unit": {
+      "options": {
+        "eur_mwh": "€/MWh (as Tenergy)",
+        "ct_kwh": "cents per kWh (ct/kWh)",
+        "eur_kwh": "€/kWh"
       }
     }
   },

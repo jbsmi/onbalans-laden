@@ -18,6 +18,18 @@ CONF_AC_PHASES = "ac_phases"
 CONF_AC_MAX_CURRENT = "ac_max_current"
 CONF_AC_VOLTAGE = "ac_voltage"
 CONF_EFFICIENCY = "efficiency"
+CONF_PRICE_UNIT = "price_unit"
+
+# weergave-eenheid prijzen (intern wordt alles in €/MWh opgeslagen)
+UNIT_EUR_MWH = "eur_mwh"
+UNIT_CT_KWH = "ct_kwh"
+UNIT_EUR_KWH = "eur_kwh"
+# eenheid: (factor t.o.v. €/MWh, label, decimalen)
+PRICE_UNITS = {
+    UNIT_EUR_MWH: (1.0, "€/MWh", 2),
+    UNIT_CT_KWH: (0.1, "ct/kWh", 3),
+    UNIT_EUR_KWH: (0.001, "€/kWh", 5),
+}
 
 CONF_START_COMMANDS = "start_commands"
 CONF_STOP_COMMANDS = "stop_commands"
@@ -70,6 +82,7 @@ DEFAULT_GENERAL = {
     CONF_URL: DEFAULT_URL,
     CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
     CONF_PRICE_COLUMN: PRICE_AFNEMEN,
+    CONF_PRICE_UNIT: UNIT_EUR_MWH,
     CONF_STALE_MINUTES: DEFAULT_STALE_MINUTES,
     CONF_INVERTERS: 3,
     CONF_MAX_DC_CURRENT: 140,

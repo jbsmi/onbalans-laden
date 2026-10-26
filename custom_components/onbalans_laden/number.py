@@ -11,7 +11,8 @@ from .const import B_DELAY_OFF, B_DELAY_ON, B_OFFSET_HIGH, B_OFFSET_LOW, B_POWER
 from .controller import ChargeController
 from .entity import BlockEntity
 
-PRICE_UNIT = "€/MWh"
+PRICE_UNIT = "prijs"  # wordt vervangen door de gekozen prijseenheid
+PRICE_KEYS = (B_THRESHOLD, B_OFFSET_LOW, B_OFFSET_HIGH)
 
 # key: (min, max, stap, eenheid, icoon)
 SPECS: dict[str, tuple[float, float, float, str, str]] = {
@@ -42,6 +43,12 @@ class BlockNumber(BlockEntity, NumberEntity):
         self._attr_icon = icon
         if key == B_POWER:
             self._attr_device_class = NumberDeviceClass.POWER
+        if key in PRICE_KEYS:
+            u = c.unit
+            self._attr_native_unit_of_measurement = u.label
+            self._attr_native_min_value = mn * u.factor
+            self._attr_native_max_value = mx * u.factor
+            self._attr_native_step = u.step
 
     @property
     def native_max_value(self) -> float:
@@ -52,7 +59,9 @@ class BlockNumber(BlockEntity, NumberEntity):
     @property
     def native_value(self) -> float | None:
         v = self.raw_value
-        return None if v is None else float(v)
+        if v is None:
+            return None
+        return self.controller.unit.show(v) if self.key in PRICE_KEYS else float(v)
 
     async def async_set_native_value(self, value: float) -> None:
         await self.async_set(value)

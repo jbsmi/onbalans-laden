@@ -25,13 +25,17 @@ from .const import (
     B_ENABLED,
     B_END,
     B_MODE,
+    B_OFFSET_HIGH,
+    B_OFFSET_LOW,
     B_POWER,
     B_START,
+    B_THRESHOLD,
     CONF_BLOCKS,
     CONF_EFFICIENCY,
     CONF_INVERTERS,
     CONF_MAX_DC_CURRENT,
     CONF_PRICE_COLUMN,
+    CONF_PRICE_UNIT,
     CONF_QOS,
     CONF_REPEAT_INTERVAL,
     CONF_RETAIN,
@@ -49,6 +53,7 @@ from .logic import (
     ChargeStateMachine,
     Decision,
     Limits,
+    PriceUnit,
     find_block,
     parse_commands,
     parse_hhmm,
@@ -101,6 +106,10 @@ class ChargeController:
             ac_voltage=float(o[CONF_AC_VOLTAGE]),
             efficiency=float(o[CONF_EFFICIENCY]),
         )
+
+    @property
+    def unit(self) -> PriceUnit:
+        return PriceUnit(self.opts.get(CONF_PRICE_UNIT))
 
     @property
     def active_block(self) -> dict | None:
@@ -177,6 +186,8 @@ class ChargeController:
         elif key == B_MODE:
             if value not in (MODE_BELOW, MODE_ABOVE):
                 raise ValueError(f"Ongeldige modus: {value}")
+        elif key in (B_THRESHOLD, B_OFFSET_LOW, B_OFFSET_HIGH):
+            value = self.unit.store(value)  # dashboard levert de weergave-eenheid
         elif key in (B_DELAY_ON, B_DELAY_OFF):
             value = int(value)
         elif key == B_POWER:

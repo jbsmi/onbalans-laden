@@ -22,6 +22,7 @@ from .const import (
     PRICE_AFNEMEN,
     PRICE_INVOEDEN,
     PRICE_MAX,
+    PRICE_UNITS,
     ST_CHARGING,
     ST_DISABLED,
     ST_IDLE,
@@ -29,6 +30,7 @@ from .const import (
     ST_NO_PRICE,
     ST_PENDING_START,
     ST_PENDING_STOP,
+    UNIT_EUR_MWH,
 )
 
 # ---------------------------------------------------------------------------
@@ -231,6 +233,44 @@ class Limits:
             "current_a_per_inverter": int(round(per_inv)),
             "ac_current_a": round(ac_a, 1),
         }
+
+
+# ---------------------------------------------------------------------------
+# Prijseenheid (weergave)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class PriceUnit:
+    """Omrekening tussen intern €/MWh en de gekozen weergave-eenheid."""
+
+    key: str = UNIT_EUR_MWH
+
+    @property
+    def factor(self) -> float:
+        return PRICE_UNITS.get(self.key, PRICE_UNITS[UNIT_EUR_MWH])[0]
+
+    @property
+    def label(self) -> str:
+        return PRICE_UNITS.get(self.key, PRICE_UNITS[UNIT_EUR_MWH])[1]
+
+    @property
+    def decimals(self) -> int:
+        return PRICE_UNITS.get(self.key, PRICE_UNITS[UNIT_EUR_MWH])[2]
+
+    @property
+    def step(self) -> float:
+        return round(0.01 * self.factor, 6)
+
+    def show(self, eur_mwh: float | None) -> float | None:
+        """€/MWh -> weergave-eenheid."""
+        if eur_mwh is None:
+            return None
+        return round(float(eur_mwh) * self.factor, self.decimals + 2)
+
+    def store(self, value: float) -> float:
+        """weergave-eenheid -> €/MWh."""
+        return round(float(value) / self.factor, 4)
 
 
 # ---------------------------------------------------------------------------

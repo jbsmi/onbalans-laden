@@ -31,6 +31,7 @@ from .const import (
     CONF_INVERTERS,
     CONF_MAX_DC_CURRENT,
     CONF_PRICE_COLUMN,
+    CONF_PRICE_UNIT,
     CONF_QOS,
     CONF_REPEAT_INTERVAL,
     CONF_RETAIN,
@@ -50,8 +51,9 @@ from .const import (
     PRICE_AFNEMEN,
     PRICE_INVOEDEN,
     PRICE_MAX,
+    PRICE_UNITS,
 )
-from .logic import Limits, parse_block_layout, parse_commands
+from .logic import Limits, PriceUnit, parse_block_layout, parse_commands
 
 APPLY_ALL = "apply_all"
 BLOCK_SELECT = "block"
@@ -79,27 +81,35 @@ def _limits(o: dict) -> Limits:
     )
 
 
-def _block_schema(cur: dict, max_kw: float) -> dict:
+def _unit(o: dict) -> PriceUnit:
+    return PriceUnit(o.get(CONF_PRICE_UNIT))
+
+
+def _block_schema(cur: dict, max_kw: float, u: PriceUnit) -> dict:
+    """Prijsvelden worden getoond in de gekozen eenheid (intern €/MWh)."""
     return {
         vol.Required(B_ENABLED, default=cur[B_ENABLED]): sel.BooleanSelector(),
         vol.Required(B_MODE, default=cur[B_MODE]): sel.SelectSelector(
             sel.SelectSelectorConfig(options=[MODE_BELOW, MODE_ABOVE], translation_key="mode")
         ),
-        vol.Required(B_THRESHOLD, default=cur[B_THRESHOLD]): _num(-10000, 10000, 0.01, "€/MWh"),
-        vol.Required(B_OFFSET_LOW, default=cur[B_OFFSET_LOW]): _num(0, 5000, 0.01, "€/MWh"),
-        vol.Required(B_OFFSET_HIGH, default=cur[B_OFFSET_HIGH]): _num(0, 5000, 0.01, "€/MWh"),
+        vol.Required(B_THRESHOLD, default=u.show(cur[B_THRESHOLD])): _num(
+            -10000 * u.factor, 10000 * u.factor, u.step, u.label
+        ),
+        vol.Required(B_OFFSET_LOW, default=u.show(cur[B_OFFSET_LOW])): _num(0, 5000 * u.factor, u.step, u.label),
+        vol.Required(B_OFFSET_HIGH, default=u.show(cur[B_OFFSET_HIGH])): _num(0, 5000 * u.factor, u.step, u.label),
         vol.Required(B_DELAY_ON, default=cur[B_DELAY_ON]): _num(0, 3600, 1, "s"),
         vol.Required(B_DELAY_OFF, default=cur[B_DELAY_OFF]): _num(0, 3600, 1, "s"),
         vol.Required(B_POWER, default=min(float(cur[B_POWER]), max_kw)): _num(0, max_kw, 0.1, "kW"),
     }
 
 
-def _clean_params(user_input: dict) -> dict:
+def _clean_params(user_input: dict, u: PriceUnit) -> dict:
     p = {k: user_input[k] for k in PARAM_KEYS}
     p[B_DELAY_ON] = int(p[B_DELAY_ON])
     p[B_DELAY_OFF] = int(p[B_DELAY_OFF])
-    for k in (B_THRESHOLD, B_OFFSET_LOW, B_OFFSET_HIGH, B_POWER):
-        p[k] = float(p[k])
+    p[B_POWER] = float(p[B_POWER])
+    for k in (B_THRESHOLD, B_OFFSET_LOW, B_OFFSET_HIGH):
+        p[k] = u.store(p[k])
     return p
 
 
@@ -167,9 +177,10 @@ class OnbalansOptionsFlow(OptionsFlow):
     def _block_label(self, i: int, b: dict) -> str:
         teken = "≤" if b[B_MODE] == MODE_BELOW else "≥"
         aan = "" if b[B_ENABLED] else " [uit]"
+        u = _unit(self.opts)
         return (
-            f"{i + 1}. {b[B_START]}–{b[B_END]}: laden bij prijs {teken} {b[B_THRESHOLD]:g} "
-            f"(−{b[B_OFFSET_LOW]:g}/+{b[B_OFFSET_HIGH]:g}) €/MWh, {b[B_POWER]:g} kW{aan}"
+            f"{i + 1}. {b[B_START]}–{b[B_END]}: laden bij prijs {teken} {u.show(b[B_THRESHOLD]):g} "
+            f"(−{u.show(b[B_OFFSET_LOW]):g}/+{u.show(b[B_OFFSET_HIGH]):g}) {u.label}, {b[B_POWER]:g} kW{aan}"
         )
 
     async def async_step_blokken(self, user_input=None) -> ConfigFlowResult:
@@ -199,11 +210,11 @@ class OnbalansOptionsFlow(OptionsFlow):
         block = self.opts[CONF_BLOCKS][idx]
         max_kw = _limits(self.opts).max_kw
         if user_input is not None:
-            block.update(_clean_params(user_input))
+            block.update(_clean_params(user_input, _unit(self.opts)))
             return await self.async_step_init()
         return self.async_show_form(
             step_id="blok",
-            data_schema=vol.Schema(_block_schema(block, max_kw)),
+            data_schema=vol.Schema(_block_schema(block, max_kw, _unit(self.opts))),
             description_placeholders={
                 "nr": str(idx + 1),
                 "van": block[B_START],
@@ -216,13 +227,13 @@ class OnbalansOptionsFlow(OptionsFlow):
     async def async_step_standaard(self, user_input=None) -> ConfigFlowResult:
         max_kw = _limits(self.opts).max_kw
         if user_input is not None:
-            params = _clean_params(user_input)
+            params = _clean_params(user_input, _unit(self.opts))
             self.opts[CONF_DEFAULTS] = params
             if user_input.get(APPLY_ALL):
                 for b in self.opts[CONF_BLOCKS]:
                     b.update(params)
             return await self.async_step_init()
-        schema = _block_schema({**DEFAULT_BLOCK_PARAMS, **self.opts[CONF_DEFAULTS]}, max_kw)
+        schema = _block_schema({**DEFAULT_BLOCK_PARAMS, **self.opts[CONF_DEFAULTS]}, max_kw, _unit(self.opts))
         schema[vol.Required(APPLY_ALL, default=True)] = sel.BooleanSelector()
         return self.async_show_form(
             step_id="standaard",
@@ -347,6 +358,7 @@ class OnbalansOptionsFlow(OptionsFlow):
             o[CONF_URL] = user_input[CONF_URL]
             o[CONF_SCAN_INTERVAL] = int(user_input[CONF_SCAN_INTERVAL])
             o[CONF_PRICE_COLUMN] = user_input[CONF_PRICE_COLUMN]
+            o[CONF_PRICE_UNIT] = user_input[CONF_PRICE_UNIT]
             o[CONF_STALE_MINUTES] = int(user_input[CONF_STALE_MINUTES])
             return await self.async_step_init()
         return self.async_show_form(
@@ -361,6 +373,9 @@ class OnbalansOptionsFlow(OptionsFlow):
                         sel.SelectSelectorConfig(
                             options=[PRICE_AFNEMEN, PRICE_INVOEDEN, PRICE_MAX], translation_key="price_column"
                         )
+                    ),
+                    vol.Required(CONF_PRICE_UNIT, default=o[CONF_PRICE_UNIT]): sel.SelectSelector(
+                        sel.SelectSelectorConfig(options=list(PRICE_UNITS), translation_key="price_unit")
                     ),
                     vol.Required(CONF_STALE_MINUTES, default=o[CONF_STALE_MINUTES]): _num(1, 60, 1, "min"),
                 }
