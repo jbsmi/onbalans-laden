@@ -36,6 +36,7 @@ Het optiemenu bevat:
 
 Onder *Prijsbron* kies je of prijzen worden getoond in **€/MWh** (zoals Tenergy), **ct/kWh** of **€/kWh**.
 Dit geldt voor de prijs- en drempelsensor, de blok-entiteiten, het optiemenu en de dashboardtabel.
+Met **Stapgrootte drempel/offset** (1, 0,1, 0,01 of 0,001; standaard 1) bepaal je in welke stappen je drempel en offsets invult.
 Intern blijft alles in €/MWh opgeslagen (1 €/MWh = 0,1 ct/kWh = 0,001 €/kWh), dus je drempels blijven kloppen.
 De MQTT-variabele `{price}` blijft in €/MWh. Na het wisselen meldt HA eenmalig dat de eenheid van de
 prijsstatistiek is veranderd; los dat op via *Ontwikkelhulpmiddelen → Statistieken*.
