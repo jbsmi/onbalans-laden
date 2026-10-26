@@ -141,3 +141,52 @@ async def test_stale_price_no_charge(hass: HomeAssistant, mqtt_mock, aioclient_m
     await ctrl.async_evaluate()
     assert ctrl.price is None and not ctrl.sm.charging
     assert ctrl.decision.status == "geen_prijs"
+
+
+async def test_block_entities_live_edit(hass: HomeAssistant, mqtt_mock, aioclient_mock):
+    aioclient_mock.get(DEFAULT_URL, text=make_html(dt_util.now(), ["100,00"]))
+    entry = MockConfigEntry(domain=DOMAIN, data={}, options=default_options())
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    ctrl = hass.data[DOMAIN][entry.entry_id]
+
+    # 9 blokken x 10 instellingen
+    for n in (1, 9):
+        assert hass.states.get(f"number.onbalans_laden_blok_{n}_drempel") is not None
+        assert hass.states.get(f"select.onbalans_laden_blok_{n}_modus").state == "below"
+        assert hass.states.get(f"switch.onbalans_laden_blok_{n}_actief").state == "on"
+        assert hass.states.get(f"time.onbalans_laden_blok_{n}_start") is not None
+    assert hass.states.get("time.onbalans_laden_blok_2_eind").state == "08:00:00"
+
+    await hass.services.async_call("number", "set_value",
+        {"entity_id": "number.onbalans_laden_blok_3_drempel", "value": 42.5}, blocking=True)
+    await hass.services.async_call("number", "set_value",
+        {"entity_id": "number.onbalans_laden_blok_3_vermogen", "value": 15}, blocking=True)
+    await hass.services.async_call("select", "select_option",
+        {"entity_id": "select.onbalans_laden_blok_3_modus", "option": "above"}, blocking=True)
+    await hass.services.async_call("switch", "turn_off",
+        {"entity_id": "switch.onbalans_laden_blok_3_actief"}, blocking=True)
+    await hass.services.async_call("time", "set_value",
+        {"entity_id": "time.onbalans_laden_blok_3_eind", "time": "10:30"}, blocking=True)
+    await hass.async_block_till_done()
+
+    b = entry.options["blocks"][2]
+    assert b["threshold"] == 42.5 and b["power_kw"] == 15.0
+    assert b["mode"] == "above" and b["enabled"] is False and b["end"] == "10:30"
+    # geen herlaad: zelfde controller
+    assert hass.data[DOMAIN][entry.entry_id] is ctrl
+    assert hass.states.get("number.onbalans_laden_blok_3_drempel").state == "42.5"
+    from homeassistant.helpers import entity_registry as er
+    sid = er.async_get(hass).async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_tijdblok")
+    blokken = hass.states.get(sid).attributes["blokken"]
+    assert blokken[2]["drempel"] == 42.5 and len(blokken) == 9
+
+    # een gewone opties-wijziging herlaadt nog wel
+    opts = {**entry.options, "blocks": entry.options["blocks"][:4]}
+    hass.config_entries.async_update_entry(entry, options=opts)
+    await hass.async_block_till_done()
+    assert hass.data[DOMAIN][entry.entry_id] is not ctrl
+    reg = er.async_get(hass)
+    assert reg.async_get("number.onbalans_laden_blok_4_drempel") is not None
+    assert reg.async_get("number.onbalans_laden_blok_5_drempel") is None
