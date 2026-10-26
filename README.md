@@ -56,6 +56,32 @@ Er wordt gestopt (stopcommando) als:
 - de nieuwste prijsregel ouder is dan *verouderd na* (standaard 5 min) of de site niet bereikbaar is,
 - Home Assistant (her)start of de instellingen worden opgeslagen (optie *stopcommando bij opstarten*, standaard aan).
 
+## Dashboard met tijdblokken in tabelvorm
+
+Elke instelling van elk tijdblok is ook een entiteit, zodat je de blokken vanaf een dashboard kunt bekijken en wijzigen
+(zonder het optiemenu te openen). Wijzigingen worden **direct opgeslagen en toegepast**, zonder herladen.
+
+| Entiteit (n = bloknummer) | Instelling |
+|---|---|
+| `switch.onbalans_laden_blok_n_actief` | tijdblok aan/uit |
+| `time.onbalans_laden_blok_n_start` / `time.onbalans_laden_blok_n_eind` | begin- en eindtijd |
+| `select.onbalans_laden_blok_n_modus` | laden onder / boven drempel |
+| `number.onbalans_laden_blok_n_drempel` | drempel (€/MWh) |
+| `number.onbalans_laden_blok_n_offset_onder` / `_offset_boven` | hysterese (€/MWh) |
+| `number.onbalans_laden_blok_n_vertraging_start` / `_vertraging_stop` | vertraging (s) |
+| `number.onbalans_laden_blok_n_vermogen` | laadvermogen (kW, max = installatielimiet) |
+
+Het attribuut `blokken` van `sensor.onbalans_laden_actief_tijdblok` bevat alle blokken als lijst (voor eigen kaarten/templates).
+
+Kant-en-klaar dashboard: [`dashboard/onbalans_laden.yaml`](dashboard/onbalans_laden.yaml) – een overzichtstabel van alle
+blokken (actief blok gemarkeerd, met start- en stopgrens) en daaronder per blok een kaart met invoervelden.
+Installeren: **Instellingen → Dashboards → Dashboard toevoegen → Nieuw dashboard vanaf nul** → openen → potlood →
+⋮ → **Ruwe configuratie-editor** → inhoud vervangen → Opslaan.
+
+Wijzig je het **aantal** blokken (menu *Indeling tijdblokken*), dan worden de entiteiten aangepast; voeg zo nodig
+blokken toe aan of verwijder ze uit het dashboard.
+Let op: een open optiemenu dat je daarna opslaat, overschrijft dashboardwijzigingen die je in de tussentijd deed.
+
 ## MQTT-commando's
 
 Eén bericht per regel: `topic = payload`. Regels die met `#` beginnen zijn commentaar.
