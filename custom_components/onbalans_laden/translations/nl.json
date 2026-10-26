@@ -203,10 +203,10 @@
     },
     "time": {
       "blok_start": {
-        "name": "Blok {nr} start"
+        "name": "Blok {nr} begintijd"
       },
       "blok_eind": {
-        "name": "Blok {nr} eind"
+        "name": "Blok {nr} eindtijd"
       }
     },
     "select": {
