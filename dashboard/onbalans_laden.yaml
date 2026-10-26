@@ -36,15 +36,16 @@ views:
               {%- set s = 'sensor.onbalans_laden_actief_tijdblok' %}
               {%- set blokken = state_attr(s, 'blokken') or [] %}
               {%- set nu = state_attr(s, 'actief_nr') %}
+              {%- set eh = state_attr(s, 'eenheid') or '€/MWh' %}
               | # | Tijd | Aan | Laden als prijs | Drempel | Start bij | Stop bij | Vertraging start / stop | kW |
               |:-:|:--|:-:|:--|--:|--:|--:|:-:|--:|
               {% for b in blokken -%}
               {%- set onder = b.modus == 'below' -%}
               {%- set laag = b.drempel - b.offset_onder -%}
               {%- set hoog = b.drempel + b.offset_boven -%}
-              | {{ '**▶ ' ~ b.nr ~ '**' if b.nr == nu else b.nr }} | {{ b.start }}–{{ b.eind }} | {{ '✅' if b.actief else '⛔' }} | {{ '≤ (onder)' if onder else '≥ (boven)' }} | {{ b.drempel }} | {{ (laag if onder else hoog) | round(2) }} | {{ (hoog if onder else laag) | round(2) }} | {{ b.vertraging_start }} s / {{ b.vertraging_stop }} s | {{ b.vermogen_kw }} |
+              | {{ '**▶ ' ~ b.nr ~ '**' if b.nr == nu else b.nr }} | {{ b.start }}–{{ b.eind }} | {{ '✅' if b.actief else '⛔' }} | {{ '≤ (onder)' if onder else '≥ (boven)' }} | {{ b.drempel }} | {{ (laag if onder else hoog) | round(5) }} | {{ (hoog if onder else laag) | round(5) }} | {{ b.vertraging_start }} s / {{ b.vertraging_stop }} s | {{ b.vermogen_kw }} |
               {% endfor %}
-              *Prijzen in €/MWh. ▶ = actief blok. Pas de waarden aan in de blokken hieronder; ze worden direct opgeslagen.*
+              *Prijzen in {{ eh }}. ▶ = actief blok. Pas de waarden aan in de blokken hieronder; ze worden direct opgeslagen.*
       - type: grid
         cards:
           - type: heading
