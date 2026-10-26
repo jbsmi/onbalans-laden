@@ -89,10 +89,52 @@ views:
       - type: grid
         column_span: 4
         cards:
+          # Klik op de kop om in/uit te klappen. Vereist helper (Instellingen > Apparaten > Helpers >
+          # Schakelaar) met de naam "Onbalans instellingen tonen" -> input_boolean.onbalans_instellingen_tonen
           - type: heading
             heading: Instellingen tijdblok 1
             icon: mdi:tune
+            tap_action:
+              action: perform-action
+              perform_action: input_boolean.toggle
+              target:
+                entity_id: input_boolean.onbalans_instellingen_tonen
+            badges:
+              - type: entity
+                entity: input_boolean.onbalans_instellingen_tonen
+                icon: mdi:chevron-down
+                show_state: false
+                show_icon: true
+                color: none
+                tap_action:
+                  action: perform-action
+                  perform_action: input_boolean.toggle
+                  target:
+                    entity_id: input_boolean.onbalans_instellingen_tonen
+                visibility:
+                  - condition: state
+                    entity: input_boolean.onbalans_instellingen_tonen
+                    state: 'off'
+              - type: entity
+                entity: input_boolean.onbalans_instellingen_tonen
+                icon: mdi:chevron-up
+                show_state: false
+                show_icon: true
+                color: none
+                tap_action:
+                  action: perform-action
+                  perform_action: input_boolean.toggle
+                  target:
+                    entity_id: input_boolean.onbalans_instellingen_tonen
+                visibility:
+                  - condition: state
+                    entity: input_boolean.onbalans_instellingen_tonen
+                    state: 'on'
           - type: entities
+            visibility:
+              - condition: state
+                entity: input_boolean.onbalans_instellingen_tonen
+                state: 'on'
             grid_options:
               columns: full
             state_color: true
@@ -119,6 +161,10 @@ views:
               - entity: number.onbalans_laden_blok_1_vermogen
                 name: Laadvermogen
           - type: markdown
+            visibility:
+              - condition: state
+                entity: input_boolean.onbalans_instellingen_tonen
+                state: 'on'
             grid_options:
               columns: full
             content: >-
