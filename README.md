@@ -29,8 +29,16 @@ Het optiemenu bevat:
 | **Indeling tijdblokken** | De tijden zelf, één per regel `HH:MM-HH:MM` (standaard 9 blokken: 00-06, 06-08, 08-10, 10-12, 12-16, 16-18, 18-20, 20-23, 23-00) |
 | **MQTT-commando's** | Start- en stopberichten (vrij in te vullen) |
 | **Installatie & limieten** | Aantal omvormers, 140 A per omvormer, accuspanning, 3×32 A, rendement |
-| **Prijsbron** | URL, interval (20 s), prijskolom (Afnemen/Invoeden), verouderingsgrens |
+| **Prijsbron** | URL, interval (20 s), prijskolom (Afnemen/Invoeden), **prijseenheid** (€/MWh, ct/kWh of €/kWh), verouderingsgrens |
 | **💾 Opslaan en sluiten** | Pas hier worden de wijzigingen bewaard |
+
+### Prijseenheid
+
+Onder *Prijsbron* kies je of prijzen worden getoond in **€/MWh** (zoals Tenergy), **ct/kWh** of **€/kWh**.
+Dit geldt voor de prijs- en drempelsensor, de blok-entiteiten, het optiemenu en de dashboardtabel.
+Intern blijft alles in €/MWh opgeslagen (1 €/MWh = 0,1 ct/kWh = 0,001 €/kWh), dus je drempels blijven kloppen.
+De MQTT-variabele `{price}` blijft in €/MWh. Na het wisselen meldt HA eenmalig dat de eenheid van de
+prijsstatistiek is veranderd; los dat op via *Ontwikkelhulpmiddelen → Statistieken*.
 
 ### Waarden per tijdblok
 
