@@ -2,7 +2,8 @@
 # Vereist: apexcharts-card (HACS > Frontend > "apexcharts-card").
 # Gebruik: Instellingen > Dashboards > Dashboard toevoegen > "Nieuw dashboard vanaf nul"
 # > openen > potlood > drie puntjes > "Ruwe configuratie-editor" > alles vervangen door deze inhoud > Opslaan.
-# SOC-sensor: sensor.rs_system_0_dc_battery_charge – vervang deze overal als je een andere accu wilt tonen.
+# SOC-sensor: sensor.rs_system_0_dc_battery_charge en accuvermogen: sensor.rs_system_0_dc_battery_power
+# – vervang deze overal als je een andere accu wilt tonen.
 title: Onbalans energie
 views:
   - title: Overzicht
@@ -64,8 +65,13 @@ views:
             color: green
           - type: tile
             entity: sensor.onbalans_laden_laadvermogen_setpoint
-            name: Laadvermogen
+            name: Laadvermogen (setpoint)
             color: green
+          - type: tile
+            entity: sensor.rs_system_0_dc_battery_power
+            name: Werkelijk laadvermogen
+            icon: mdi:battery-arrow-up
+            color: purple
           - type: tile
             entity: sensor.rs_system_0_dc_battery_charge
             name: Accu (SOC)
@@ -450,7 +456,6 @@ views:
                     text: Prijs
               - id: kw
                 opposite: true
-                min: 0
                 decimals: 0
                 apex_config:
                   title:
@@ -509,11 +514,18 @@ views:
                 show:
                   in_header: false
               - entity: sensor.onbalans_laden_laadvermogen_setpoint
-                name: Laadvermogen
+                name: Laadvermogen (setpoint)
                 yaxis_id: kw
                 type: line
                 curve: stepline
                 color: '#ff9800'
+                stroke_width: 2
+              - entity: sensor.rs_system_0_dc_battery_power
+                name: Werkelijk laadvermogen
+                yaxis_id: kw
+                type: line
+                curve: smooth
+                color: '#9c27b0'
                 stroke_width: 2
               - entity: sensor.rs_system_0_dc_battery_charge
                 name: Accu SOC
