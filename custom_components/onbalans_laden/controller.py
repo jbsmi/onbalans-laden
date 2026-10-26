@@ -35,6 +35,7 @@ from .const import (
     CONF_INVERTERS,
     CONF_MAX_DC_CURRENT,
     CONF_PRICE_COLUMN,
+    CONF_PRICE_STEP,
     CONF_PRICE_UNIT,
     CONF_QOS,
     CONF_REPEAT_INTERVAL,
@@ -109,7 +110,7 @@ class ChargeController:
 
     @property
     def unit(self) -> PriceUnit:
-        return PriceUnit(self.opts.get(CONF_PRICE_UNIT))
+        return PriceUnit(self.opts.get(CONF_PRICE_UNIT), float(self.opts.get(CONF_PRICE_STEP) or 0))
 
     @property
     def active_block(self) -> dict | None:

@@ -19,6 +19,8 @@ CONF_AC_MAX_CURRENT = "ac_max_current"
 CONF_AC_VOLTAGE = "ac_voltage"
 CONF_EFFICIENCY = "efficiency"
 CONF_PRICE_UNIT = "price_unit"
+CONF_PRICE_STEP = "price_step"
+PRICE_STEPS = ["1", "0.1", "0.01", "0.001"]
 
 # weergave-eenheid prijzen (intern wordt alles in €/MWh opgeslagen)
 UNIT_EUR_MWH = "eur_mwh"
@@ -83,6 +85,7 @@ DEFAULT_GENERAL = {
     CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
     CONF_PRICE_COLUMN: PRICE_AFNEMEN,
     CONF_PRICE_UNIT: UNIT_EUR_MWH,
+    CONF_PRICE_STEP: "1",
     CONF_STALE_MINUTES: DEFAULT_STALE_MINUTES,
     CONF_INVERTERS: 3,
     CONF_MAX_DC_CURRENT: 140,

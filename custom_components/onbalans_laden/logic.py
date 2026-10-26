@@ -245,6 +245,7 @@ class PriceUnit:
     """Omrekening tussen intern €/MWh en de gekozen weergave-eenheid."""
 
     key: str = UNIT_EUR_MWH
+    step_size: float = 0.0  # stapgrootte invoervelden in weergave-eenheid (0 = automatisch)
 
     @property
     def factor(self) -> float:
@@ -260,6 +261,8 @@ class PriceUnit:
 
     @property
     def step(self) -> float:
+        if self.step_size and self.step_size > 0:
+            return float(self.step_size)
         return round(0.01 * self.factor, 6)
 
     def show(self, eur_mwh: float | None) -> float | None:

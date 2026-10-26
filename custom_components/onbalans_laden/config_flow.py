@@ -31,6 +31,7 @@ from .const import (
     CONF_INVERTERS,
     CONF_MAX_DC_CURRENT,
     CONF_PRICE_COLUMN,
+    CONF_PRICE_STEP,
     CONF_PRICE_UNIT,
     CONF_QOS,
     CONF_REPEAT_INTERVAL,
@@ -51,6 +52,7 @@ from .const import (
     PRICE_AFNEMEN,
     PRICE_INVOEDEN,
     PRICE_MAX,
+    PRICE_STEPS,
     PRICE_UNITS,
 )
 from .logic import Limits, PriceUnit, parse_block_layout, parse_commands
@@ -82,7 +84,7 @@ def _limits(o: dict) -> Limits:
 
 
 def _unit(o: dict) -> PriceUnit:
-    return PriceUnit(o.get(CONF_PRICE_UNIT))
+    return PriceUnit(o.get(CONF_PRICE_UNIT), float(o.get(CONF_PRICE_STEP) or 0))
 
 
 def _block_schema(cur: dict, max_kw: float, u: PriceUnit) -> dict:
@@ -359,6 +361,7 @@ class OnbalansOptionsFlow(OptionsFlow):
             o[CONF_SCAN_INTERVAL] = int(user_input[CONF_SCAN_INTERVAL])
             o[CONF_PRICE_COLUMN] = user_input[CONF_PRICE_COLUMN]
             o[CONF_PRICE_UNIT] = user_input[CONF_PRICE_UNIT]
+            o[CONF_PRICE_STEP] = user_input[CONF_PRICE_STEP]
             o[CONF_STALE_MINUTES] = int(user_input[CONF_STALE_MINUTES])
             return await self.async_step_init()
         return self.async_show_form(
@@ -376,6 +379,9 @@ class OnbalansOptionsFlow(OptionsFlow):
                     ),
                     vol.Required(CONF_PRICE_UNIT, default=o[CONF_PRICE_UNIT]): sel.SelectSelector(
                         sel.SelectSelectorConfig(options=list(PRICE_UNITS), translation_key="price_unit")
+                    ),
+                    vol.Required(CONF_PRICE_STEP, default=str(o[CONF_PRICE_STEP])): sel.SelectSelector(
+                        sel.SelectSelectorConfig(options=PRICE_STEPS, mode=sel.SelectSelectorMode.DROPDOWN)
                     ),
                     vol.Required(CONF_STALE_MINUTES, default=o[CONF_STALE_MINUTES]): _num(1, 60, 1, "min"),
                 }
