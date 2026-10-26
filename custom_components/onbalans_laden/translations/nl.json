@@ -123,11 +123,13 @@
           "scan_interval": "Ophaalinterval (s)",
           "price_column": "Prijskolom",
           "stale_minutes": "Prijs verouderd na (min)",
-          "price_unit": "Prijseenheid (weergave)"
+          "price_unit": "Prijseenheid (weergave)",
+          "price_step": "Stapgrootte drempel/offset"
         },
         "data_description": {
           "stale_minutes": "Is de nieuwste regel ouder, dan wordt er niet (meer) geladen.",
-          "price_unit": "Alleen de weergave; de drempels worden intern in €/MWh bewaard en omgerekend. 1 €/MWh = 0,1 ct/kWh = 0,001 €/kWh. De MQTT-variabele 'price' blijft in €/MWh."
+          "price_unit": "Alleen de weergave; de drempels worden intern in €/MWh bewaard en omgerekend. 1 €/MWh = 0,1 ct/kWh = 0,001 €/kWh. De MQTT-variabele 'price' blijft in €/MWh.",
+          "price_step": "Stap van de invoervelden voor drempel en offsets, in de gekozen prijseenheid."
         }
       }
     },

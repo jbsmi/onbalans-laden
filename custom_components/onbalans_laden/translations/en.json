@@ -123,11 +123,13 @@
           "scan_interval": "Poll interval (s)",
           "price_column": "Price column",
           "stale_minutes": "Price stale after (min)",
-          "price_unit": "Price unit (display)"
+          "price_unit": "Price unit (display)",
+          "price_step": "Step size threshold/offset"
         },
         "data_description": {
           "stale_minutes": "If the newest row is older, charging stops.",
-          "price_unit": "Display only; thresholds are stored in €/MWh and converted. 1 €/MWh = 0.1 ct/kWh = 0.001 €/kWh. The MQTT variable 'price' stays in €/MWh."
+          "price_unit": "Display only; thresholds are stored in €/MWh and converted. 1 €/MWh = 0.1 ct/kWh = 0.001 €/kWh. The MQTT variable 'price' stays in €/MWh.",
+          "price_step": "Step of the threshold and offset input fields, in the chosen price unit."
         }
       }
     },
