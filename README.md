@@ -57,6 +57,23 @@ prijsstatistiek is veranderd; los dat op via *Ontwikkelhulpmiddelen → Statisti
 Wisselt het tijdblok tijdens het laden, dan worden de nieuwe drempels direct gebruikt en wordt bij een ander
 vermogen het startcommando opnieuw verstuurd met het nieuwe vermogen.
 
+### Sturing: onbalans, handmatig aan of handmatig uit
+
+Per tijdblok kies je de **sturing** (`select.onbalans_laden_blok_n_sturing`):
+
+- **Onbalans (auto)** – laden volgens drempel, offsets en vertragingen hierboven (standaard).
+- **Handmatig aan** – direct laden met het laadvermogen van dat tijdblok; de onbalansprijs en vertragingen worden genegeerd.
+- **Handmatig uit** – in dat tijdblok wordt niet geladen.
+
+Daarboven staat de algemene **Sturing laden** (`select.onbalans_laden_sturing`), die alle tijdblokken overrulet:
+
+- **Per tijdblok** – elk tijdblok volgt zijn eigen sturing (standaard).
+- **Alle blokken: onbalans (auto)** / **handmatig aan** / **handmatig uit** – geldt voor alle tijdblokken tegelijk,
+  ongeacht wat per blok is ingesteld (ook voor uitgeschakelde tijdblokken en tijden buiten de tijdblokken;
+  handmatig aan laadt dan met het vermogen van het actieve blok, of met het maximum als er geen blok actief is).
+
+De schakelaar **Automatische sturing** blijft de hoofdschakelaar: staat die uit, dan wordt er nooit geladen, ook niet handmatig.
+
 ### Veiligheid
 
 Er wordt gestopt (stopcommando) als:
@@ -73,6 +90,7 @@ Elke instelling van elk tijdblok is ook een entiteit, zodat je de blokken vanaf 
 | Entiteit (n = bloknummer) | Instelling |
 |---|---|
 | `switch.onbalans_laden_blok_n_actief` | tijdblok aan/uit |
+| `select.onbalans_laden_blok_n_sturing` | onbalans (auto) / handmatig aan / handmatig uit |
 | `time.onbalans_laden_blok_n_start` / `time.onbalans_laden_blok_n_eind` | begin- en eindtijd |
 | `select.onbalans_laden_blok_n_modus` | laden onder / boven drempel |
 | `number.onbalans_laden_blok_n_drempel` | drempel (€/MWh) |
@@ -147,12 +165,13 @@ W/<portal-id>/vebus/<vebus>/Hub4/L3/AcPowerSetpoint = {"value": 0}
 | Entiteit | Inhoud |
 |---|---|
 | `sensor.…_onbalansprijs` | actuele prijs (€/MWh) + attributen: afnemen, invoeden, op/afregelen, laatste 15 minuten |
-| `sensor.…_status` | uit / wachten / startvertraging / laden / stopvertraging / geen_tijdblok / geen_prijs + `reden`, `laatste_acties` |
+| `sensor.…_status` | uit / wachten / startvertraging / laden / stopvertraging / geen_tijdblok / geen_prijs / handmatig_aan / handmatig_uit + `reden`, `sturing`, `laatste_acties` |
 | `sensor.…_actief_tijdblok` | actief blok + alle instellingen + overzicht van alle blokken |
 | `sensor.…_drempel` | drempel van het actieve blok + `startgrens` / `stopgrens` (handig in een grafiek) |
 | `sensor.…_laadvermogen_setpoint` | kW + stromen, max-limieten |
 | `binary_sensor.…_laden` | wordt er geladen |
 | `switch.…_automatische_sturing` | hoofdschakelaar |
+| `select.onbalans_laden_sturing` | algemene sturing: per tijdblok / alle blokken onbalans, handmatig aan of uit |
 | `switch.…_testmodus_niet_versturen` | alleen loggen, niets publiceren |
 
 ## Testen
