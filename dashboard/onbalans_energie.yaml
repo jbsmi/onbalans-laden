@@ -37,12 +37,20 @@ views:
                 'stopvertraging': '⏱️ **Prijs is niet meer gunstig** – laden stopt zo (stopvertraging).',
                 'uit': '⛔ **Automatische sturing staat uit** of het tijdblok is uitgeschakeld.',
                 'geen_tijdblok': '🕒 **Geen tijdblok actief** op dit moment.',
-                'geen_prijs': '⚠️ **Geen actuele onbalansprijs** – er wordt niet geladen.'
+                'geen_prijs': '⚠️ **Geen actuele onbalansprijs** – er wordt niet geladen.',
+                'handmatig_aan': '✋ **Handmatig laden aan** met ' ~ kw ~ ' kW (onbalansprijs genegeerd).',
+                'handmatig_uit': '✋ **Handmatig uit** – er wordt niet geladen.'
               } %}
+              {%- set alg = states('select.onbalans_laden_sturing') %}
+              {%- set ctrl = state_attr('sensor.onbalans_laden_status', 'sturing') %}
               {{ teksten.get(st, st) }}
 
               Onbalansprijs nu: **{{ p }} {{ eh }}** · Accu: **{{ soc }} %**
-              {%- if start is not none %}
+              {%- if alg not in ['per_tijdblok', 'unknown', 'unavailable'] %}
+
+              ⚠️ Algemene sturing **{{ state_translated('select.onbalans_laden_sturing') }}** overrulet alle tijdblokken.
+              {%- endif %}
+              {%- if start is not none and ctrl in [none, 'auto'] %}
 
               Laden start bij prijs **≤ {{ start }}** en stopt bij **≥ {{ stop }} {{ eh }}**
               (tijdblok {{ states('sensor.onbalans_laden_actief_tijdblok') }}).
@@ -87,9 +95,16 @@ views:
             color: grey
           - type: tile
             entity: switch.onbalans_laden_automatische_sturing
-            name: Automatisch laden
+            name: Hoofdschakelaar
             features:
               - type: toggle
+          - type: tile
+            entity: select.onbalans_laden_sturing
+            name: Sturing alle tijdblokken
+            grid_options:
+              columns: 12
+            features:
+              - type: select-options
 
       # ---------------------------------------------------------------- instellingen blok 1
       - type: grid
@@ -148,6 +163,8 @@ views:
             entities:
               - entity: switch.onbalans_laden_blok_1_actief
                 name: Tijdblok actief
+              - entity: select.onbalans_laden_blok_1_sturing
+                name: Sturing (onbalans / handmatig)
               - entity: time.onbalans_laden_blok_1_start
                 name: Begintijd
               - entity: time.onbalans_laden_blok_1_eind
@@ -176,6 +193,9 @@ views:
             content: >-
               Wijzigingen worden direct opgeslagen en toegepast. *Onder drempel*: laden start bij
               prijs ≤ drempel − offset onder en stopt bij prijs ≥ drempel + offset boven.
+              *Sturing*: **Onbalans (auto)** volgt de prijs, **Handmatig aan** laadt direct met het
+              ingestelde laadvermogen, **Handmatig uit** laadt niet. De keuze *Sturing alle tijdblokken*
+              bovenaan overrulet dit, behalve als die op **Per tijdblok** staat.
 
       # ---------------------------------------------------------------- overige tijdblokken
       # Vereist helper (Schakelaar) "Onbalans overige blokken tonen" -> input_boolean.onbalans_overige_blokken_tonen
@@ -221,6 +241,8 @@ views:
           entities:
           - entity: switch.onbalans_laden_blok_2_actief
             name: Tijdblok actief
+          - entity: select.onbalans_laden_blok_2_sturing
+            name: Sturing (onbalans / handmatig)
           - entity: time.onbalans_laden_blok_2_start
             name: Begintijd
           - entity: time.onbalans_laden_blok_2_eind
@@ -247,6 +269,8 @@ views:
           entities:
           - entity: switch.onbalans_laden_blok_3_actief
             name: Tijdblok actief
+          - entity: select.onbalans_laden_blok_3_sturing
+            name: Sturing (onbalans / handmatig)
           - entity: time.onbalans_laden_blok_3_start
             name: Begintijd
           - entity: time.onbalans_laden_blok_3_eind
@@ -273,6 +297,8 @@ views:
           entities:
           - entity: switch.onbalans_laden_blok_4_actief
             name: Tijdblok actief
+          - entity: select.onbalans_laden_blok_4_sturing
+            name: Sturing (onbalans / handmatig)
           - entity: time.onbalans_laden_blok_4_start
             name: Begintijd
           - entity: time.onbalans_laden_blok_4_eind
@@ -299,6 +325,8 @@ views:
           entities:
           - entity: switch.onbalans_laden_blok_5_actief
             name: Tijdblok actief
+          - entity: select.onbalans_laden_blok_5_sturing
+            name: Sturing (onbalans / handmatig)
           - entity: time.onbalans_laden_blok_5_start
             name: Begintijd
           - entity: time.onbalans_laden_blok_5_eind
@@ -325,6 +353,8 @@ views:
           entities:
           - entity: switch.onbalans_laden_blok_6_actief
             name: Tijdblok actief
+          - entity: select.onbalans_laden_blok_6_sturing
+            name: Sturing (onbalans / handmatig)
           - entity: time.onbalans_laden_blok_6_start
             name: Begintijd
           - entity: time.onbalans_laden_blok_6_eind
@@ -351,6 +381,8 @@ views:
           entities:
           - entity: switch.onbalans_laden_blok_7_actief
             name: Tijdblok actief
+          - entity: select.onbalans_laden_blok_7_sturing
+            name: Sturing (onbalans / handmatig)
           - entity: time.onbalans_laden_blok_7_start
             name: Begintijd
           - entity: time.onbalans_laden_blok_7_eind
@@ -377,6 +409,8 @@ views:
           entities:
           - entity: switch.onbalans_laden_blok_8_actief
             name: Tijdblok actief
+          - entity: select.onbalans_laden_blok_8_sturing
+            name: Sturing (onbalans / handmatig)
           - entity: time.onbalans_laden_blok_8_start
             name: Begintijd
           - entity: time.onbalans_laden_blok_8_eind
@@ -403,6 +437,8 @@ views:
           entities:
           - entity: switch.onbalans_laden_blok_9_actief
             name: Tijdblok actief
+          - entity: select.onbalans_laden_blok_9_sturing
+            name: Sturing (onbalans / handmatig)
           - entity: time.onbalans_laden_blok_9_start
             name: Begintijd
           - entity: time.onbalans_laden_blok_9_eind
