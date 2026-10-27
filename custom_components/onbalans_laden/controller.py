@@ -20,6 +20,7 @@ from .const import (
     CONF_AC_PHASES,
     CONF_AC_VOLTAGE,
     CONF_BATTERY_VOLTAGE,
+    B_CONTROL,
     B_DELAY_OFF,
     B_DELAY_ON,
     B_ENABLED,
@@ -44,7 +45,10 @@ from .const import (
     CONF_START_COMMANDS,
     CONF_STOP_COMMANDS,
     CONF_STOP_ON_STARTUP,
+    BLOCK_CONTROLS,
+    CTRL_PER_BLOCK,
     DEFAULT_GENERAL,
+    GLOBAL_CONTROLS,
     MODE_ABOVE,
     MODE_BELOW,
     SIGNAL_UPDATE,
@@ -55,6 +59,7 @@ from .logic import (
     Decision,
     Limits,
     PriceUnit,
+    effective_control,
     find_block,
     parse_commands,
     parse_hhmm,
@@ -74,6 +79,8 @@ class ChargeController:
         self.coordinator = coordinator
         self.sm = ChargeStateMachine()
         self.auto_enabled = True
+        self.global_control = CTRL_PER_BLOCK  # algemene sturing, overrulet alle tijdblokken
+        self.control: str | None = None  # sturing die nu effectief geldt
         self.test_mode = True
         self.price: float | None = None
         self.price_time: str | None = None
@@ -154,6 +161,12 @@ class ChargeController:
         self.auto_enabled = on
         await self.async_evaluate()
 
+    async def async_set_global_control(self, value: str) -> None:
+        if value not in GLOBAL_CONTROLS:
+            raise ValueError(f"Ongeldige sturing: {value}")
+        self.global_control = value
+        await self.async_evaluate()
+
     async def async_set_test_mode(self, on: bool) -> None:
         async with self._lock:
             if on and not self.test_mode and self.sm.charging:
@@ -187,6 +200,9 @@ class ChargeController:
         elif key == B_MODE:
             if value not in (MODE_BELOW, MODE_ABOVE):
                 raise ValueError(f"Ongeldige modus: {value}")
+        elif key == B_CONTROL:
+            if value not in BLOCK_CONTROLS:
+                raise ValueError(f"Ongeldige sturing: {value}")
         elif key in (B_THRESHOLD, B_OFFSET_LOW, B_OFFSET_HIGH):
             value = self.unit.store(value)  # dashboard levert de weergave-eenheid
         elif key in (B_DELAY_ON, B_DELAY_OFF):
@@ -230,7 +246,9 @@ class ChargeController:
         self._current_price(now)
         self.block_index = find_block(self.blocks, now.time())
         limits = self.limits
-        d = self.sm.evaluate(now, self.auto_enabled, self.price, self.active_block, limits.max_kw)
+        block = self.active_block
+        self.control = effective_control(self.global_control, block)
+        d = self.sm.evaluate(now, self.auto_enabled, self.price, block, limits.max_kw, self.control)
 
         if d.action in ("start", "update"):
             await self._send("start", d.power_kw, d.reason)

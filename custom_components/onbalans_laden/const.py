@@ -54,6 +54,7 @@ B_OFFSET_HIGH = "offset_high"
 B_DELAY_ON = "delay_on"
 B_DELAY_OFF = "delay_off"
 B_POWER = "power_kw"
+B_CONTROL = "control"  # sturing per tijdblok: auto (onbalans) / aan / uit
 
 # entity-id achtervoegsel per blokinstelling (number/select/switch/time per tijdblok)
 BLOCK_ENTITY_SLUG = {
@@ -67,10 +68,19 @@ BLOCK_ENTITY_SLUG = {
     B_DELAY_ON: "vertraging_start",
     B_DELAY_OFF: "vertraging_stop",
     B_POWER: "vermogen",
+    B_CONTROL: "sturing",
 }
 
 MODE_BELOW = "below"  # laden als prijs laag is
 MODE_ABOVE = "above"  # laden als prijs hoog is
+
+# sturing: per tijdblok en algemeen (algemeen overrulet alle tijdblokken)
+CTRL_AUTO = "auto"  # laden op basis van de onbalansprijs
+CTRL_ON = "aan"  # handmatig laden aan (prijs genegeerd)
+CTRL_OFF = "uit"  # handmatig laden uit
+CTRL_PER_BLOCK = "per_tijdblok"  # alleen algemeen: elk tijdblok volgt zijn eigen sturing
+BLOCK_CONTROLS = [CTRL_AUTO, CTRL_ON, CTRL_OFF]
+GLOBAL_CONTROLS = [CTRL_PER_BLOCK, CTRL_AUTO, CTRL_ON, CTRL_OFF]
 
 PRICE_AFNEMEN = "afnemen"
 PRICE_INVOEDEN = "invoeden"
@@ -111,6 +121,7 @@ DEFAULT_BLOCK_PARAMS = {
     B_DELAY_ON: 60,
     B_DELAY_OFF: 60,
     B_POWER: 10.0,
+    B_CONTROL: CTRL_AUTO,
 }
 
 DEFAULT_BLOCK_TIMES = [
@@ -133,5 +144,7 @@ ST_CHARGING = "laden"
 ST_PENDING_STOP = "stopvertraging"
 ST_NO_BLOCK = "geen_tijdblok"
 ST_NO_PRICE = "geen_prijs"
+ST_MANUAL_ON = "handmatig_aan"
+ST_MANUAL_OFF = "handmatig_uit"
 
 SIGNAL_UPDATE = f"{DOMAIN}_update_{{}}"

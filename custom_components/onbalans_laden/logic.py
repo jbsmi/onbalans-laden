@@ -8,6 +8,7 @@ import re
 from typing import Any
 
 from .const import (
+    B_CONTROL,
     B_DELAY_OFF,
     B_DELAY_ON,
     B_ENABLED,
@@ -18,6 +19,10 @@ from .const import (
     B_POWER,
     B_START,
     B_THRESHOLD,
+    BLOCK_CONTROLS,
+    CTRL_AUTO,
+    CTRL_OFF,
+    CTRL_ON,
     MODE_ABOVE,
     PRICE_AFNEMEN,
     PRICE_INVOEDEN,
@@ -26,6 +31,8 @@ from .const import (
     ST_CHARGING,
     ST_DISABLED,
     ST_IDLE,
+    ST_MANUAL_OFF,
+    ST_MANUAL_ON,
     ST_NO_BLOCK,
     ST_NO_PRICE,
     ST_PENDING_START,
@@ -329,6 +336,21 @@ def parse_block_layout(text: str) -> list[tuple[str, str]]:
     return out
 
 
+def effective_control(global_control: str | None, block: dict | None) -> str:
+    """Welke sturing geldt nu? De algemene keuze overrulet alle tijdblokken.
+
+    - algemeen 'aan'/'uit'/'auto' -> geldt voor elk tijdblok (ook buiten tijdblokken)
+    - algemeen 'per_tijdblok'     -> sturing van het actieve tijdblok; een uitgeschakeld
+      tijdblok of geen tijdblok valt terug op 'auto' (en laadt dus niet)
+    """
+    if global_control in (CTRL_AUTO, CTRL_ON, CTRL_OFF):
+        return global_control
+    if not block or not block.get(B_ENABLED, True):
+        return CTRL_AUTO
+    ctrl = block.get(B_CONTROL, CTRL_AUTO)
+    return ctrl if ctrl in BLOCK_CONTROLS else CTRL_AUTO
+
+
 # ---------------------------------------------------------------------------
 # Statemachine
 # ---------------------------------------------------------------------------
@@ -368,8 +390,9 @@ class ChargeStateMachine:
         price: float | None,
         params: dict | None,
         max_kw: float,
+        control: str = CTRL_AUTO,
     ) -> Decision:
-        d = self._evaluate(now, enabled, price, params, max_kw)
+        d = self._evaluate(now, enabled, price, params, max_kw, control)
         self.last = d
         return d
 
@@ -381,9 +404,29 @@ class ChargeStateMachine:
             return Decision(status, False, "stop", 0.0, reason)
         return Decision(status, False, None, 0.0, reason)
 
-    def _evaluate(self, now, enabled, price, params, max_kw) -> Decision:
+    def _manual_on(self, params: dict | None, max_kw: float) -> Decision:
+        """Handmatig laden: direct starten, zonder prijsvoorwaarde of vertraging."""
+        self.pending_since = None
+        power = float(params[B_POWER]) if params else max_kw  # buiten tijdblokken: max vermogen
+        power = round(max(0.0, min(power, max_kw)), 2)
+        if power <= 0:
+            return self._stop(ST_MANUAL_ON, "handmatig aan, maar vermogen 0 kW")
+        if not self.charging:
+            self.charging = True
+            self.active_power_kw = power
+            return Decision(ST_MANUAL_ON, True, "start", power, "handmatig aan")
+        if abs(power - self.active_power_kw) > 0.001:
+            self.active_power_kw = power
+            return Decision(ST_MANUAL_ON, True, "update", power, "handmatig aan: vermogen gewijzigd")
+        return Decision(ST_MANUAL_ON, True, None, self.active_power_kw, "handmatig aan")
+
+    def _evaluate(self, now, enabled, price, params, max_kw, control=CTRL_AUTO) -> Decision:
         if not enabled:
             return self._stop(ST_DISABLED, "automatische sturing uit")
+        if control == CTRL_OFF:
+            return self._stop(ST_MANUAL_OFF, "handmatig uit")
+        if control == CTRL_ON:
+            return self._manual_on(params, max_kw)
         if params is None:
             return self._stop(ST_NO_BLOCK, "geen tijdblok actief")
         if not params.get(B_ENABLED, True):

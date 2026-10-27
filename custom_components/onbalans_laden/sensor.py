@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
+    B_CONTROL,
     B_DELAY_OFF,
     B_DELAY_ON,
     B_ENABLED,
@@ -20,11 +21,14 @@ from .const import (
     B_POWER,
     B_START,
     B_THRESHOLD,
+    CTRL_AUTO,
     DOMAIN,
     MODE_ABOVE,
     ST_CHARGING,
     ST_DISABLED,
     ST_IDLE,
+    ST_MANUAL_OFF,
+    ST_MANUAL_ON,
     ST_NO_BLOCK,
     ST_NO_PRICE,
     ST_PENDING_START,
@@ -96,7 +100,8 @@ class PriceSensor(OnbalansEntity, SensorEntity):
 
 class StatusSensor(OnbalansEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.ENUM
-    _attr_options = [ST_DISABLED, ST_IDLE, ST_PENDING_START, ST_CHARGING, ST_PENDING_STOP, ST_NO_BLOCK, ST_NO_PRICE]
+    _attr_options = [ST_DISABLED, ST_IDLE, ST_PENDING_START, ST_CHARGING, ST_PENDING_STOP, ST_NO_BLOCK, ST_NO_PRICE,
+                     ST_MANUAL_ON, ST_MANUAL_OFF]
     _attr_icon = "mdi:battery-charging-outline"
 
     def __init__(self, c: ChargeController) -> None:
@@ -112,6 +117,8 @@ class StatusSensor(OnbalansEntity, SensorEntity):
             "reden": self.controller.decision.reason,
             "testmodus": self.controller.test_mode,
             "automatisch": self.controller.auto_enabled,
+            "sturing_algemeen": self.controller.global_control,
+            "sturing": self.controller.control,
             "laatste_acties": list(self.controller.history),
         }
 
@@ -143,6 +150,7 @@ class BlockSensor(OnbalansEntity, SensorEntity):
             "vertraging_start_s": b.get(B_DELAY_ON),
             "vertraging_stop_s": b.get(B_DELAY_OFF),
             "vermogen_kw": b.get(B_POWER),
+            "sturing": b.get(B_CONTROL, CTRL_AUTO) if b else None,
             "actief_nr": None if self.controller.block_index is None else self.controller.block_index + 1,
             # gestructureerd overzicht, gebruikt door de tabel op het dashboard
             "blokken": [
@@ -158,6 +166,7 @@ class BlockSensor(OnbalansEntity, SensorEntity):
                     "vertraging_start": x[B_DELAY_ON],
                     "vertraging_stop": x[B_DELAY_OFF],
                     "vermogen_kw": x[B_POWER],
+                    "sturing": x.get(B_CONTROL, CTRL_AUTO),
                 }
                 for i, x in enumerate(self.controller.blocks)
             ],

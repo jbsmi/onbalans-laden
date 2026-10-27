@@ -11,6 +11,7 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector as sel
 
 from .const import (
+    B_CONTROL,
     B_DELAY_OFF,
     B_DELAY_ON,
     B_ENABLED,
@@ -42,6 +43,9 @@ from .const import (
     CONF_STOP_COMMANDS,
     CONF_STOP_ON_STARTUP,
     CONF_URL,
+    CTRL_AUTO,
+    CTRL_OFF,
+    CTRL_ON,
     DEFAULT_BLOCK_PARAMS,
     DEFAULT_BLOCK_TIMES,
     DEFAULT_GENERAL,
@@ -179,6 +183,11 @@ class OnbalansOptionsFlow(OptionsFlow):
     def _block_label(self, i: int, b: dict) -> str:
         teken = "≤" if b[B_MODE] == MODE_BELOW else "≥"
         aan = "" if b[B_ENABLED] else " [uit]"
+        ctrl = b.get(B_CONTROL, CTRL_AUTO)
+        if ctrl == CTRL_ON:
+            aan += " [handmatig aan]"
+        elif ctrl == CTRL_OFF:
+            aan += " [handmatig uit]"
         u = _unit(self.opts)
         return (
             f"{i + 1}. {b[B_START]}–{b[B_END]}: laden bij prijs {teken} {u.show(b[B_THRESHOLD]):g} "
@@ -256,7 +265,11 @@ class OnbalansOptionsFlow(OptionsFlow):
                 defaults = {**DEFAULT_BLOCK_PARAMS, **self.opts[CONF_DEFAULTS]}
                 new = []
                 for i, (s, e) in enumerate(layout):
-                    params = {k: old[i][k] for k in PARAM_KEYS} if i < len(old) else dict(defaults)
+                    if i < len(old):
+                        params = {k: old[i][k] for k in PARAM_KEYS}
+                        params[B_CONTROL] = old[i].get(B_CONTROL, CTRL_AUTO)
+                    else:
+                        params = {**dict(defaults), B_CONTROL: CTRL_AUTO}
                     new.append({B_START: s, B_END: e, **params})
                 self.opts[CONF_BLOCKS] = new
                 return await self.async_step_init()
