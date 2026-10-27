@@ -174,7 +174,9 @@
           "laden": "Laden",
           "stopvertraging": "Stopvertraging",
           "geen_tijdblok": "Geen tijdblok",
-          "geen_prijs": "Geen actuele prijs"
+          "geen_prijs": "Geen actuele prijs",
+          "handmatig_aan": "Handmatig aan",
+          "handmatig_uit": "Handmatig uit"
         }
       },
       "tijdblok": {
@@ -217,6 +219,23 @@
         "state": {
           "below": "onder drempel",
           "above": "boven drempel"
+        }
+      },
+      "sturing": {
+        "name": "Sturing laden",
+        "state": {
+          "per_tijdblok": "Per tijdblok",
+          "auto": "Alle blokken: onbalans (auto)",
+          "aan": "Alle blokken: handmatig aan",
+          "uit": "Alle blokken: handmatig uit"
+        }
+      },
+      "blok_sturing": {
+        "name": "Blok {nr} sturing",
+        "state": {
+          "auto": "Onbalans (auto)",
+          "aan": "Handmatig aan",
+          "uit": "Handmatig uit"
         }
       }
     },

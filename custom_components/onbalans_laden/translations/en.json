@@ -174,7 +174,9 @@
           "laden": "Charging",
           "stopvertraging": "Stop delay",
           "geen_tijdblok": "No time block",
-          "geen_prijs": "No current price"
+          "geen_prijs": "No current price",
+          "handmatig_aan": "Manual on",
+          "handmatig_uit": "Manual off"
         }
       },
       "tijdblok": {
@@ -217,6 +219,23 @@
         "state": {
           "below": "below threshold",
           "above": "above threshold"
+        }
+      },
+      "sturing": {
+        "name": "Charging control",
+        "state": {
+          "per_tijdblok": "Per time block",
+          "auto": "All blocks: imbalance (auto)",
+          "aan": "All blocks: manual on",
+          "uit": "All blocks: manual off"
+        }
+      },
+      "blok_sturing": {
+        "name": "Block {nr} control",
+        "state": {
+          "auto": "Imbalance (auto)",
+          "aan": "Manual on",
+          "uit": "Manual off"
         }
       }
     },
