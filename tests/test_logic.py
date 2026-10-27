@@ -118,3 +118,45 @@ def test_statemachine_above_mode_power_update_and_safety():
     assert sm.evaluate(t, True, 61, None, 20).action == "stop"     # geen tijdblok
     sm.evaluate(t, True, 61, p, 20)
     assert sm.evaluate(t, True, 61, {**p, "enabled": False}, 20).action == "stop"
+
+
+def test_effective_control():
+    from custom_components.onbalans_laden.logic import effective_control
+    blk = {"enabled": True, "control": "aan"}
+    assert effective_control("per_tijdblok", blk) == "aan"
+    assert effective_control("per_tijdblok", {"enabled": True}) == "auto"  # oude opties zonder sturing
+    assert effective_control("per_tijdblok", {"enabled": False, "control": "aan"}) == "auto"
+    assert effective_control("per_tijdblok", None) == "auto"
+    assert effective_control("uit", blk) == "uit"  # algemeen overrulet het tijdblok
+    assert effective_control("auto", blk) == "auto"
+    assert effective_control("aan", {"enabled": False, "control": "uit"}) == "aan"
+    assert effective_control("aan", None) == "aan"
+
+
+def test_state_machine_manual():
+    sm = ChargeStateMachine()
+    now = datetime(2026, 10, 27, 12, 0)
+    p = dict(threshold=0.0, offset_low=5.0, offset_high=5.0, delay_on=60, delay_off=60, power_kw=8.0,
+             mode=MODE_BELOW, enabled=True)
+    # handmatig aan: direct laden, ook bij hoge of ontbrekende prijs, zonder vertraging
+    d = sm.evaluate(now, True, 500.0, p, 20.0, "aan")
+    assert d.action == "start" and d.power_kw == 8.0 and d.status == "handmatig_aan"
+    d = sm.evaluate(now, True, None, p, 20.0, "aan")
+    assert d.action is None and sm.charging
+    # vermogen wijzigt -> update
+    d = sm.evaluate(now, True, None, {**p, "power_kw": 5.0}, 20.0, "aan")
+    assert d.action == "update" and d.power_kw == 5.0
+    # buiten tijdblokken: max vermogen
+    d = sm.evaluate(now, True, None, None, 20.0, "aan")
+    assert d.action == "update" and d.power_kw == 20.0
+    # handmatig uit: direct stoppen, ook bij lage prijs
+    d = sm.evaluate(now, True, -500.0, p, 20.0, "uit")
+    assert d.action == "stop" and d.status == "handmatig_uit" and not sm.charging
+    d = sm.evaluate(now, True, -500.0, p, 20.0, "uit")
+    assert d.action is None
+    # hoofdschakelaar uit wint van handmatig aan
+    d = sm.evaluate(now, False, None, p, 20.0, "aan")
+    assert d.status == "uit" and not sm.charging
+    # terug naar auto: normale startvertraging
+    d = sm.evaluate(now, True, -10.0, p, 20.0, "auto")
+    assert d.status == "startvertraging"

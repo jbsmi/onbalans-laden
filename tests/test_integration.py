@@ -237,3 +237,62 @@ async def test_price_unit_ct_kwh(hass: HomeAssistant, mqtt_mock, aioclient_mock)
     await hass.async_block_till_done()
     b = entry.options["blocks"][1]
     assert b["threshold"] == 22.0 and b["offset_low"] == 5.0 and b["offset_high"] == 10.0
+
+
+async def test_manual_control(hass: HomeAssistant, mqtt_mock, aioclient_mock):
+    aioclient_mock.get(DEFAULT_URL, text=make_html(dt_util.now(), ["500,00"]))  # dure prijs: auto laadt niet
+    opts = default_options()
+    for b in opts["blocks"]:
+        b.update(threshold=0.0, offset_low=5.0, offset_high=5.0, delay_on=0, delay_off=0, power_kw=7.0)
+    entry = MockConfigEntry(domain=DOMAIN, data={}, options=opts)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    ctrl = hass.data[DOMAIN][entry.entry_id]
+    await ctrl.async_evaluate()
+    assert not ctrl.sm.charging
+
+    assert hass.states.get("select.onbalans_laden_sturing").state == "per_tijdblok"
+    for n in range(1, 10):
+        assert hass.states.get(f"select.onbalans_laden_blok_{n}_sturing").state == "auto"
+
+    # handmatig aan voor alle tijdblokken
+    nr = ctrl.block_index + 1
+    for n in range(1, 10):
+        await hass.services.async_call("select", "select_option",
+            {"entity_id": f"select.onbalans_laden_blok_{n}_sturing", "option": "aan"}, blocking=True)
+    await hass.async_block_till_done()
+    assert ctrl.sm.charging and ctrl.decision.status == "handmatig_aan" and ctrl.sm.active_power_kw == 7.0
+    assert entry.options["blocks"][nr - 1]["control"] == "aan"
+    assert hass.data[DOMAIN][entry.entry_id] is ctrl  # live, geen herlaad
+
+    # algemeen 'uit' overrulet de tijdblokken
+    await hass.services.async_call("select", "select_option",
+        {"entity_id": "select.onbalans_laden_sturing", "option": "uit"}, blocking=True)
+    await hass.async_block_till_done()
+    assert not ctrl.sm.charging and ctrl.decision.status == "handmatig_uit"
+
+    # algemeen 'auto' -> onbalans (dure prijs, dus niet laden), ondanks blok 'aan'
+    await hass.services.async_call("select", "select_option",
+        {"entity_id": "select.onbalans_laden_sturing", "option": "auto"}, blocking=True)
+    await hass.async_block_till_done()
+    assert not ctrl.sm.charging and ctrl.decision.status == "wachten"
+
+    # terug naar per tijdblok -> blok staat op 'aan'
+    await hass.services.async_call("select", "select_option",
+        {"entity_id": "select.onbalans_laden_sturing", "option": "per_tijdblok"}, blocking=True)
+    await hass.async_block_till_done()
+    assert ctrl.sm.charging
+
+    from homeassistant.helpers import entity_registry as er
+    sid = er.async_get(hass).async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_tijdblok")
+    assert hass.states.get(sid).attributes["blokken"][0]["sturing"] == "aan"
+
+    # indeling wijzigen behoudt de sturing per blok
+    r = await hass.config_entries.options.async_init(entry.entry_id)
+    fid = r["flow_id"]
+    r = await hass.config_entries.options.async_configure(fid, {"next_step_id": "indeling"})
+    r = await hass.config_entries.options.async_configure(fid, {"layout": "00:00-12:00\n12:00-00:00\n05:00-06:00"})
+    r = await hass.config_entries.options.async_configure(fid, {"next_step_id": "opslaan"})
+    await hass.async_block_till_done()
+    assert [b["control"] for b in entry.options["blocks"]] == ["aan", "aan", "aan"]
