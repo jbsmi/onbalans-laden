@@ -225,7 +225,7 @@
         "name": "Charging control",
         "state": {
           "per_tijdblok": "Per time block",
-          "auto": "All blocks: imbalance (auto)",
+          "auto": "All blocks: onbalans (auto)",
           "aan": "All blocks: manual on",
           "uit": "All blocks: manual off"
         }
@@ -233,7 +233,7 @@
       "blok_sturing": {
         "name": "Block {nr} control",
         "state": {
-          "auto": "Imbalance (auto)",
+          "auto": "Onbalans (auto)",
           "aan": "Manual on",
           "uit": "Manual off"
         }
