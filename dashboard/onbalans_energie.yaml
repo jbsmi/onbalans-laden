@@ -107,11 +107,28 @@ views:
             entity: sensor.onbalans_laden_actief_tijdblok
             name: Tijdblok
             color: grey
-          - type: tile
-            entity: switch.onbalans_laden_automatische_sturing
-            name: Hoofdschakelaar
-            features:
-              - type: toggle
+          - type: grid
+            columns: 2
+            square: false
+            grid_options:
+              columns: 12
+            cards:
+              - type: tile
+                entity: switch.onbalans_laden_automatische_sturing
+                name: Hoofd
+                icon: mdi:power
+                vertical: false
+                features_position: inline
+                features:
+                  - type: toggle
+              - type: tile
+                entity: switch.onbalans_laden_testmodus_niet_versturen
+                name: Test
+                icon: mdi:test-tube
+                vertical: false
+                features_position: inline
+                features:
+                  - type: toggle
           - type: tile
             entity: select.onbalans_laden_sturing
             name: Sturing alle tijdblokken
