@@ -4,6 +4,8 @@
 # > openen > potlood > drie puntjes > "Ruwe configuratie-editor" > alles vervangen door deze inhoud > Opslaan.
 # SOC-sensor: sensor.rs_system_0_dc_battery_charge en accuvermogen: sensor.rs_system_0_dc_battery_power
 # – vervang deze overal als je een andere accu wilt tonen.
+# MultiPlus-laadvermogen: zet bij sensor.multiplus_…_dc_power in de entiteitsinstellingen de eenheid op kW
+# en de weergaveprecisie op 1 decimaal (meter en grafiek gaan uit van kW).
 title: Onbalans energie
 views:
   - title: Overzicht
@@ -78,14 +80,14 @@ views:
           - type: gauge
             entity: sensor.multiplus_ii_48_10000_140_100_id_276_dc_power
             name: MultiPlus 10kVA laadvermogen
-            unit: W
+            unit: kW
             min: 0
-            max: 21000
+            max: 21
             needle: true
             severity:
               green: 0
-              yellow: 15000
-              red: 20000
+              yellow: 15
+              red: 20
             grid_options:
               columns: 6
               rows: auto
@@ -603,9 +605,10 @@ views:
                 curve: stepline
                 color: '#e91e63'
                 stroke_width: 2
-                transform: "return x / 1000;"
+                # sensor staat in kW (entiteitsinstelling); oudere historie in W wordt omgerekend
+                transform: "return Math.abs(x) > 100 ? x / 1000 : x;"
                 unit: kW
-                float_precision: 2
+                float_precision: 1
               - entity: sensor.rs_system_0_dc_battery_charge
                 name: Accu SOC
                 yaxis_id: soc
