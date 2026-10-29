@@ -190,6 +190,10 @@ class ChargeController:
             elif not on and self.test_mode and self.sm.charging:
                 self.test_mode = False
                 await self._send("start", self.sm.active_power_kw, "testmodus uitgezet")
+            elif not on and self.test_mode:
+                # niet aan het laden: zorg dat de echte installatie ook in de stopstand staat
+                self.test_mode = False
+                await self._send("stop", 0.0, "testmodus uitgezet")
             self.test_mode = on
         self._notify()
 
