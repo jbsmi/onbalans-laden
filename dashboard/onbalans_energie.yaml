@@ -75,6 +75,20 @@ views:
             entity: sensor.onbalans_laden_laadvermogen_setpoint
             name: Laadvermogen (setpoint)
             color: green
+          - type: gauge
+            entity: sensor.multiplus_ii_48_10000_140_100_id_276_dc_power
+            name: MultiPlus 10kVA laadvermogen
+            unit: W
+            min: 0
+            max: 21000
+            needle: true
+            severity:
+              green: 0
+              yellow: 15000
+              red: 20000
+            grid_options:
+              columns: 6
+              rows: auto
           - type: tile
             entity: sensor.rs_system_0_dc_battery_power
             name: Werkelijk laadvermogen
@@ -563,6 +577,16 @@ views:
                 curve: smooth
                 color: '#9c27b0'
                 stroke_width: 2
+              - entity: sensor.multiplus_ii_48_10000_140_100_id_276_dc_power
+                name: MultiPlus 10kVA laadvermogen
+                yaxis_id: kw
+                type: line
+                curve: stepline
+                color: '#e91e63'
+                stroke_width: 2
+                transform: "return x / 1000;"
+                unit: kW
+                float_precision: 2
               - entity: sensor.rs_system_0_dc_battery_charge
                 name: Accu SOC
                 yaxis_id: soc
