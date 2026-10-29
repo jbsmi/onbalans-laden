@@ -131,7 +131,9 @@ views:
                   - type: toggle
           - type: tile
             entity: select.onbalans_laden_sturing
-            name: Sturing alle tijdblokken
+            name: Sturing
+            vertical: false
+            features_position: inline
             grid_options:
               columns: 12
             features:
@@ -225,7 +227,7 @@ views:
               Wijzigingen worden direct opgeslagen en toegepast. *Onder drempel*: laden start bij
               prijs ≤ drempel − offset onder en stopt bij prijs ≥ drempel + offset boven.
               *Sturing*: **Onbalans (auto)** volgt de prijs, **Handmatig aan** laadt direct met het
-              ingestelde laadvermogen, **Handmatig uit** laadt niet. De keuze *Sturing alle tijdblokken*
+              ingestelde laadvermogen, **Handmatig uit** laadt niet. De keuze *Sturing*
               bovenaan overrulet dit, behalve als die op **Per tijdblok** staat.
 
       # ---------------------------------------------------------------- overige tijdblokken
