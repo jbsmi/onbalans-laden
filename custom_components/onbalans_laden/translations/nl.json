@@ -23,6 +23,7 @@
           "blokken": "Tijdblok instellen",
           "standaard": "Standaardregel (op alle tijdblokken)",
           "indeling": "Indeling tijdblokken (tijden)",
+          "omvormers": "Aansturing omvormers",
           "mqtt": "MQTT-commando's start/stop",
           "installatie": "Installatie & limieten",
           "algemeen": "Prijsbron",
@@ -131,11 +132,29 @@
           "price_unit": "Alleen de weergave; de drempels worden intern in €/MWh bewaard en omgerekend. 1 €/MWh = 0,1 ct/kWh = 0,001 €/kWh. De MQTT-variabele 'price' blijft in €/MWh.",
           "price_step": "Stap van de invoervelden voor drempel en offsets, in de gekozen prijseenheid."
         }
+      },
+      "omvormers": {
+        "title": "Aansturing omvormers",
+        "description": "Kies hoe start/stop bij de omvormers komt. **Home Assistant-entiteiten**: bv. de Victron MQTT-integratie — de AC-ingangsstroomlimiet (per fase) wordt uit het laadvermogen berekend en de modus wordt bij start/stop gezet. **MQTT-commando's**: zie het menu MQTT.",
+        "data": {
+          "control_method": "Aansturen via",
+          "limit_entity": "AC-ingangsstroomlimiet (number, A per fase)",
+          "mode_entity": "Modus omvormer (select)",
+          "mode_start": "Modus bij start",
+          "mode_stop": "Modus bij stop",
+          "limit_stop": "Stroomlimiet bij stop (A)"
+        },
+        "data_description": {
+          "limit_entity": "Wordt laadvermogen ÷ rendement ÷ (fasen × netspanning), naar beneden afgerond op de stap van de entiteit.",
+          "mode_stop": "'-' = modus niet wijzigen.",
+          "limit_stop": "0 A = niet laden (controleer of de omvormer 0 A echt accepteert)."
+        }
       }
     },
     "error": {
       "invalid_layout": "Ongeldige indeling. Gebruik per regel HH:MM-HH:MM.",
-      "invalid_commands": "Ongeldig: gebruik per regel `topic = payload` (topic zonder spaties, # of +)."
+      "invalid_commands": "Ongeldig: gebruik per regel `topic = payload` (topic zonder spaties, # of +).",
+      "no_entities": "Kies minstens één entiteit (stroomlimiet of modus)."
     }
   },
   "selector": {
@@ -157,6 +176,21 @@
         "eur_mwh": "€/MWh (zoals Tenergy)",
         "ct_kwh": "cent per kWh (ct/kWh)",
         "eur_kwh": "€/kWh"
+      }
+    },
+    "control_method": {
+      "options": {
+        "mqtt": "MQTT-commando's",
+        "entities": "Home Assistant-entiteiten"
+      }
+    },
+    "inverter_mode": {
+      "options": {
+        "-": "- (niet wijzigen)",
+        "charger_only": "alleen lader (charger_only)",
+        "on": "aan (on)",
+        "inverter_only": "alleen omvormer (inverter_only)",
+        "off": "uit (off)"
       }
     }
   },
