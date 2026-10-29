@@ -32,7 +32,13 @@ from .const import (
     B_START,
     B_THRESHOLD,
     CONF_BLOCKS,
+    CONF_CONTROL_METHOD,
     CONF_EFFICIENCY,
+    CONF_LIMIT_ENTITY,
+    CONF_LIMIT_STOP,
+    CONF_MODE_ENTITY,
+    CONF_MODE_START,
+    CONF_MODE_STOP,
     CONF_INVERTERS,
     CONF_MAX_DC_CURRENT,
     CONF_PRICE_COLUMN,
@@ -49,6 +55,8 @@ from .const import (
     CTRL_PER_BLOCK,
     DEFAULT_GENERAL,
     GLOBAL_CONTROLS,
+    METHOD_ENTITIES,
+    MODE_UNCHANGED,
     MODE_ABOVE,
     MODE_BELOW,
     SIGNAL_UPDATE,
@@ -61,6 +69,7 @@ from .logic import (
     PriceUnit,
     effective_control,
     find_block,
+    limit_value,
     parse_commands,
     parse_hhmm,
     render_payload,
@@ -138,7 +147,11 @@ class ChargeController:
             self._unsubs.append(async_call_later(self.hass, 10, self._startup_stop))
 
     async def _startup_stop(self, _now=None) -> None:
-        if not self.test_mode and not await mqtt.async_wait_for_mqtt_client(self.hass):
+        if (
+            not self.test_mode
+            and self.opts.get(CONF_CONTROL_METHOD) != METHOD_ENTITIES
+            and not await mqtt.async_wait_for_mqtt_client(self.hass)
+        ):
             _LOGGER.error("MQTT niet beschikbaar; stop-commando bij opstarten niet verstuurd")
             return
         await self._send("stop", 0.0, "opstarten (veilige stand)")
@@ -266,29 +279,13 @@ class ChargeController:
         self._notify()
 
     async def _send(self, kind: str, power_kw: float, reason: str) -> None:
-        o = self.opts
-        text = o[CONF_START_COMMANDS] if kind == "start" else o[CONF_STOP_COMMANDS]
         values = self.limits.values_for(power_kw)
         values["price"] = self.price if self.price is not None else ""
-        try:
-            cmds = parse_commands(text)
-        except ValueError as err:
-            _LOGGER.error("Ongeldige %s-commando's: %s", kind, err)
-            cmds = []
         self.last_sent = dt_util.now()
-        sent = []
-        for topic, tpl in cmds:
-            payload = render_payload(tpl, values)
-            sent.append(f"{topic} = {payload}")
-            if self.test_mode:
-                _LOGGER.info("[TESTMODUS] %s: %s %s", kind, topic, payload)
-                continue
-            try:
-                await mqtt.async_publish(self.hass, topic, payload, int(o[CONF_QOS]), bool(o[CONF_RETAIN]))
-            except Exception as err:  # noqa: BLE001
-                _LOGGER.error("MQTT publiceren naar %s mislukt: %s", topic, err)
-        if not cmds:
-            _LOGGER.warning("Geen %s-commando's ingesteld (opties > MQTT-commando's)", kind)
+        if self.opts.get(CONF_CONTROL_METHOD) == METHOD_ENTITIES:
+            sent = await self._send_entities(kind, values)
+        else:
+            sent = await self._send_mqtt(kind, values)
         if reason != "herhaling":
             self.history.appendleft(
                 {
@@ -302,6 +299,80 @@ class ChargeController:
                 }
             )
             _LOGGER.info("Onbalans laden: %s (%s kW) - %s", kind, values["power_kw"], reason)
+
+    async def _send_mqtt(self, kind: str, values: dict[str, Any]) -> list[str]:
+        o = self.opts
+        text = o[CONF_START_COMMANDS] if kind == "start" else o[CONF_STOP_COMMANDS]
+        try:
+            cmds = parse_commands(text)
+        except ValueError as err:
+            _LOGGER.error("Ongeldige %s-commando's: %s", kind, err)
+            cmds = []
+        sent = []
+        for topic, tpl in cmds:
+            payload = render_payload(tpl, values)
+            sent.append(f"{topic} = {payload}")
+            if self.test_mode:
+                _LOGGER.info("[TESTMODUS] %s: %s %s", kind, topic, payload)
+                continue
+            try:
+                await mqtt.async_publish(self.hass, topic, payload, int(o[CONF_QOS]), bool(o[CONF_RETAIN]))
+            except Exception as err:  # noqa: BLE001
+                _LOGGER.error("MQTT publiceren naar %s mislukt: %s", topic, err)
+        if not cmds:
+            _LOGGER.warning("Geen %s-commando's ingesteld (opties > MQTT-commando's)", kind)
+        return sent
+
+    def entity_actions(self, kind: str, values: dict[str, Any]) -> list[tuple[str, str, str, Any]]:
+        """(domein, service, entiteit, doelwaarde) voor start of stop via HA-entiteiten.
+
+        Start: eerst de stroomlimiet, dan de modus (zodat er niet even met de oude limiet geladen wordt).
+        Stop: eerst de limiet omlaag, dan eventueel de modus.
+        """
+        o = self.opts
+        lim_ent = o.get(CONF_LIMIT_ENTITY) or ""
+        mode_ent = o.get(CONF_MODE_ENTITY) or ""
+        mode = o.get(CONF_MODE_START) if kind == "start" else o.get(CONF_MODE_STOP)
+        actions: list[tuple[str, str, str, Any]] = []
+        if lim_ent:
+            st = self.hass.states.get(lim_ent)
+            attrs = st.attributes if st else {}
+            amps = values["ac_current_a"] if kind == "start" else float(o.get(CONF_LIMIT_STOP) or 0)
+            val = limit_value(amps, attrs.get("step"), attrs.get("min"), attrs.get("max"))
+            actions.append(("number", "set_value", lim_ent, val))
+        if mode_ent and mode and mode != MODE_UNCHANGED:
+            actions.append(("select", "select_option", mode_ent, mode))
+        return actions
+
+    def _is_current(self, entity_id: str, target: Any) -> bool:
+        st = self.hass.states.get(entity_id)
+        if st is None:
+            return False
+        if isinstance(target, float):
+            try:
+                return abs(float(st.state) - target) < 1e-6
+            except ValueError:
+                return False
+        return st.state == target
+
+    async def _send_entities(self, kind: str, values: dict[str, Any]) -> list[str]:
+        actions = self.entity_actions(kind, values)
+        if not actions:
+            _LOGGER.warning("Geen omvormer-entiteiten ingesteld (opties > Aansturing omvormers)")
+        sent = []
+        for domain, service, entity_id, target in actions:
+            if self._is_current(entity_id, target):
+                continue  # staat al goed: niet onnodig naar de omvormer schrijven
+            sent.append(f"{entity_id} = {target}")
+            if self.test_mode:
+                _LOGGER.info("[TESTMODUS] %s: %s -> %s", kind, entity_id, target)
+                continue
+            data = {"entity_id": entity_id, ("value" if domain == "number" else "option"): target}
+            try:
+                await self.hass.services.async_call(domain, service, data, blocking=True)
+            except Exception as err:  # noqa: BLE001
+                _LOGGER.error("Instellen van %s op %s mislukt: %s", entity_id, target, err)
+        return sent
 
     @callback
     def _notify(self) -> None:

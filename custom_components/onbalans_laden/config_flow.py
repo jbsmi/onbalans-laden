@@ -11,6 +11,16 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector as sel
 
 from .const import (
+    CONF_CONTROL_METHOD,
+    CONF_LIMIT_ENTITY,
+    CONF_LIMIT_STOP,
+    CONF_MODE_ENTITY,
+    CONF_MODE_START,
+    CONF_MODE_STOP,
+    INVERTER_MODES,
+    METHOD_ENTITIES,
+    METHOD_MQTT,
+    MODE_UNCHANGED,
     B_CONTROL,
     B_DELAY_OFF,
     B_DELAY_ON,
@@ -172,7 +182,7 @@ class OnbalansOptionsFlow(OptionsFlow):
     async def async_step_init(self, user_input=None) -> ConfigFlowResult:
         return self.async_show_menu(
             step_id="init",
-            menu_options=["blokken", "standaard", "indeling", "mqtt", "installatie", "algemeen", "opslaan"],
+            menu_options=["blokken", "standaard", "indeling", "omvormers", "mqtt", "installatie", "algemeen", "opslaan"],
             description_placeholders={"max_kw": str(_limits(self.opts).max_kw)},
         )
 
@@ -281,6 +291,44 @@ class OnbalansOptionsFlow(OptionsFlow):
             ),
             errors=errors,
         )
+
+    # ------------------------------------------------------------ aansturing omvormers
+    async def async_step_omvormers(self, user_input=None) -> ConfigFlowResult:
+        errors: dict[str, str] = {}
+        o = self.opts
+        if user_input is not None:
+            method = user_input[CONF_CONTROL_METHOD]
+            mode_ent = user_input.get(CONF_MODE_ENTITY) or ""
+            lim_ent = user_input.get(CONF_LIMIT_ENTITY) or ""
+            if method == METHOD_ENTITIES and not (mode_ent or lim_ent):
+                errors["base"] = "no_entities"
+            else:
+                o[CONF_CONTROL_METHOD] = method
+                o[CONF_MODE_ENTITY] = mode_ent
+                o[CONF_LIMIT_ENTITY] = lim_ent
+                o[CONF_MODE_START] = user_input.get(CONF_MODE_START) or MODE_UNCHANGED
+                o[CONF_MODE_STOP] = user_input.get(CONF_MODE_STOP) or MODE_UNCHANGED
+                o[CONF_LIMIT_STOP] = float(user_input.get(CONF_LIMIT_STOP, 0))
+                return await self.async_step_init()
+            o = {**o, **user_input}
+        modes = sel.SelectSelector(
+            sel.SelectSelectorConfig(
+                options=[MODE_UNCHANGED, *INVERTER_MODES], translation_key="inverter_mode", custom_value=True
+            )
+        )
+        schema: dict = {
+            vol.Required(CONF_CONTROL_METHOD, default=o[CONF_CONTROL_METHOD]): sel.SelectSelector(
+                sel.SelectSelectorConfig(options=[METHOD_MQTT, METHOD_ENTITIES], translation_key="control_method")
+            ),
+        }
+        for key, domain in ((CONF_LIMIT_ENTITY, "number"), (CONF_MODE_ENTITY, "select")):
+            schema[vol.Optional(key, description={"suggested_value": o.get(key) or None})] = sel.EntitySelector(
+                sel.EntitySelectorConfig(domain=domain)
+            )
+        schema[vol.Required(CONF_MODE_START, default=o[CONF_MODE_START])] = modes
+        schema[vol.Required(CONF_MODE_STOP, default=o[CONF_MODE_STOP])] = modes
+        schema[vol.Required(CONF_LIMIT_STOP, default=o[CONF_LIMIT_STOP])] = _num(0, 100, 0.1, "A")
+        return self.async_show_form(step_id="omvormers", data_schema=vol.Schema(schema), errors=errors)
 
     # ------------------------------------------------------------ MQTT
     async def async_step_mqtt(self, user_input=None) -> ConfigFlowResult:

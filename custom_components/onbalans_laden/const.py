@@ -40,6 +40,18 @@ CONF_QOS = "qos"
 CONF_RETAIN = "retain"
 CONF_STOP_ON_STARTUP = "stop_on_startup"
 
+# aansturing omvormers: via MQTT-commando's of via Home Assistant-entiteiten (bv. Victron MQTT-integratie)
+CONF_CONTROL_METHOD = "control_method"
+METHOD_MQTT = "mqtt"
+METHOD_ENTITIES = "entities"
+CONF_MODE_ENTITY = "mode_entity"  # select-entiteit met de modus van de omvormer
+CONF_MODE_START = "mode_start"
+CONF_MODE_STOP = "mode_stop"
+MODE_UNCHANGED = "-"  # modus niet wijzigen
+CONF_LIMIT_ENTITY = "limit_entity"  # number-entiteit: AC-ingangsstroomlimiet per fase (A)
+CONF_LIMIT_STOP = "limit_stop"
+INVERTER_MODES = ["charger_only", "on", "inverter_only", "off"]
+
 CONF_BLOCKS = "blocks"
 CONF_DEFAULTS = "defaults"
 
@@ -110,6 +122,12 @@ DEFAULT_GENERAL = {
     CONF_QOS: 0,
     CONF_RETAIN: False,
     CONF_STOP_ON_STARTUP: True,
+    CONF_CONTROL_METHOD: METHOD_MQTT,
+    CONF_MODE_ENTITY: "",
+    CONF_MODE_START: "charger_only",
+    CONF_MODE_STOP: MODE_UNCHANGED,
+    CONF_LIMIT_ENTITY: "",
+    CONF_LIMIT_STOP: 0,
 }
 
 DEFAULT_BLOCK_PARAMS = {

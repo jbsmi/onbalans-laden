@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, time, timedelta
 from html.parser import HTMLParser
+import math
 import re
 from typing import Any
 
@@ -194,6 +195,20 @@ def render_payload(template: str, values: dict[str, Any]) -> str:
         return str(values[key]) if key in values else m.group(0)
 
     return re.sub(r"\{([a-z_]+)\}", repl, template)
+
+
+def limit_value(current_a: float, step: float | None, mn: float | None, mx: float | None) -> float:
+    """Stroomlimiet afronden op de stap van de entiteit (naar beneden, zodat het setpoint niet overschreden wordt)."""
+    v = max(0.0, float(current_a))
+    st = float(step) if step else 0.0
+    if st > 0:
+        v = math.floor(v / st + 1e-9) * st
+        v = round(v, 6)
+    if mn is not None:
+        v = max(v, float(mn))
+    if mx is not None:
+        v = min(v, float(mx))
+    return v
 
 
 # ---------------------------------------------------------------------------

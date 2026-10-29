@@ -23,6 +23,7 @@
           "blokken": "Edit a time block",
           "standaard": "Default rule (all blocks)",
           "indeling": "Time block layout",
+          "omvormers": "Inverter control",
           "mqtt": "MQTT start/stop commands",
           "installatie": "Installation & limits",
           "algemeen": "Price source",
@@ -131,11 +132,29 @@
           "price_unit": "Display only; thresholds are stored in €/MWh and converted. 1 €/MWh = 0.1 ct/kWh = 0.001 €/kWh. The MQTT variable 'price' stays in €/MWh.",
           "price_step": "Step of the threshold and offset input fields, in the chosen price unit."
         }
+      },
+      "omvormers": {
+        "title": "Inverter control",
+        "description": "Choose how start/stop reaches the inverters. **Home Assistant entities**: e.g. the Victron MQTT integration — the AC input current limit (per phase) is set from the charge power, the mode is switched on start/stop. **MQTT commands**: see the MQTT menu.",
+        "data": {
+          "control_method": "Control via",
+          "limit_entity": "AC input current limit (number, A per phase)",
+          "mode_entity": "Inverter mode (select)",
+          "mode_start": "Mode on start",
+          "mode_stop": "Mode on stop",
+          "limit_stop": "Current limit on stop (A)"
+        },
+        "data_description": {
+          "limit_entity": "Set to charge power ÷ efficiency ÷ (phases × voltage), rounded down to the entity step.",
+          "mode_stop": "'-' = leave mode unchanged.",
+          "limit_stop": "0 A = no charging (check that the inverter actually accepts 0 A)."
+        }
       }
     },
     "error": {
       "invalid_layout": "Invalid layout. Use HH:MM-HH:MM per line.",
-      "invalid_commands": "Invalid: use `topic = payload` per line."
+      "invalid_commands": "Invalid: use `topic = payload` per line.",
+      "no_entities": "Choose at least one entity (current limit or mode)."
     }
   },
   "selector": {
@@ -157,6 +176,21 @@
         "eur_mwh": "€/MWh (as Tenergy)",
         "ct_kwh": "cents per kWh (ct/kWh)",
         "eur_kwh": "€/kWh"
+      }
+    },
+    "control_method": {
+      "options": {
+        "mqtt": "MQTT commands",
+        "entities": "Home Assistant entities"
+      }
+    },
+    "inverter_mode": {
+      "options": {
+        "-": "- (unchanged)",
+        "charger_only": "charger_only",
+        "on": "on",
+        "inverter_only": "inverter_only",
+        "off": "off"
       }
     }
   },
