@@ -117,6 +117,27 @@ start- en stopgrens, laadmomenten (groen vlak), laadvermogen en SOC, en een tabe
 Vereist **apexcharts-card** (HACS → Frontend). De SOC-sensor staat op `sensor.rs_system_0_dc_battery_charge`;
 vervang die als je een andere accu wilt tonen.
 
+## Aansturing via Home Assistant-entiteiten (Victron MQTT-integratie)
+
+Praat de MQTT-integratie van Home Assistant met een eigen broker (bv. Mosquitto) in plaats van met de Cerbo,
+dan komen MQTT-commando's niet bij de omvormers aan. Kies dan in **Opties → Aansturing omvormers** voor
+**Home Assistant-entiteiten** en wijs de entiteiten van de Victron MQTT-integratie aan:
+
+| Veld | Voorbeeld (MultiPlus-II 3-fase VE.Bus) |
+|---|---|
+| AC-ingangsstroomlimiet | `number.multiplus_ii_48_10000_140_100_id_276_current_limit` |
+| Modus omvormer | `select.multiplus_ii_48_10000_140_100_id_276` |
+| Modus bij start / stop | `charger_only` / `-` (niet wijzigen) |
+| Stroomlimiet bij stop | 0 A |
+
+Bij **start** wordt eerst de stroomlimiet gezet op laadvermogen ÷ rendement ÷ (fasen × netspanning), naar beneden
+afgerond op de stap van de entiteit (10 kW → 15 A per fase), en daarna de modus. Bij **stop** gaat eerst de limiet
+naar de stopwaarde en daarna eventueel de modus. Een waarde die al goed staat wordt niet opnieuw geschreven.
+In testmodus wordt alleen gelogd.
+
+> Controleer na de eerste stop of de omvormers bij 0 A echt stoppen met laden (DC-vermogen ≈ 0). Blijven ze laden
+> (VE.Bus kan een minimale stroomlimiet afdwingen), kies dan bij stop de modus `off`.
+
 ## MQTT-commando's
 
 Eén bericht per regel: `topic = payload`. Regels die met `#` beginnen zijn commentaar.
