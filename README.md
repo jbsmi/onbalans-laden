@@ -127,7 +127,7 @@ dan komen MQTT-commando's niet bij de omvormers aan. Kies dan in **Opties → Aa
 |---|---|
 | AC-ingangsstroomlimiet | `number.multiplus_ii_48_10000_140_100_id_276_current_limit` |
 | Modus omvormer | `select.multiplus_ii_48_10000_140_100_id_276` |
-| Modus bij start / stop | `charger_only` / `-` (niet wijzigen) |
+| Modus bij start / stop | `charger_only` / `off` |
 | Stroomlimiet bij stop | 0 A |
 
 Bij **start** wordt eerst de stroomlimiet gezet op laadvermogen ÷ rendement ÷ (fasen × netspanning), naar beneden
@@ -135,8 +135,8 @@ afgerond op de stap van de entiteit (10 kW → 15 A per fase), en daarna de modu
 naar de stopwaarde en daarna eventueel de modus. Een waarde die al goed staat wordt niet opnieuw geschreven.
 In testmodus wordt alleen gelogd.
 
-> Controleer na de eerste stop of de omvormers bij 0 A echt stoppen met laden (DC-vermogen ≈ 0). Blijven ze laden
-> (VE.Bus kan een minimale stroomlimiet afdwingen), kies dan bij stop de modus `off`.
+> Let op: VE.Bus dwingt een minimale stroomlimiet af (bij een MultiPlus-II 48/10000 met PowerAssist is 0 A in de
+> praktijk 8,6 A, en blijft hij dus ~5 kW laden). Kies daarom bij stop de modus `off`; dan stopt het laden wel.
 
 ## MQTT-commando's
 
