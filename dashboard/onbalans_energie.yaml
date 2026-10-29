@@ -105,10 +105,6 @@ views:
               - entity: sensor.multiplus_ii_48_10000_140_100_id_276_input_current_l3
                 name: L3
                 icon: mdi:current-ac
-              - type: simple-entity
-                entity: number.multiplus_ii_48_10000_140_100_id_276_current_limit
-                name: Limiet
-                icon: mdi:speedometer
           - type: tile
             entity: sensor.rs_system_0_dc_battery_power
             name: Werkelijk laadvermogen
