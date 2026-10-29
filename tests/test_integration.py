@@ -367,3 +367,23 @@ async def test_entity_control(hass: HomeAssistant, mqtt_mock, aioclient_mock):
     assert num_calls[-1].data == {"entity_id": LIM, "value": 0.0}
     assert len(sel_calls) == n_sel
     request_cleanup()
+
+
+async def test_test_mode_off_sends_stop(hass: HomeAssistant, mqtt_mock, aioclient_mock):
+    aioclient_mock.get(DEFAULT_URL, text=make_html(dt_util.now(), ["500,00"]))
+    opts = default_options()
+    opts["start_commands"] = START
+    opts["stop_commands"] = STOP
+    opts["stop_on_startup"] = False
+    entry = MockConfigEntry(domain=DOMAIN, data={}, options=opts)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    ctrl = hass.data[DOMAIN][entry.entry_id]
+    await ctrl.async_evaluate()
+    assert not ctrl.sm.charging
+    mqtt_mock.async_publish.assert_not_called()
+    await ctrl.async_set_test_mode(False)
+    await hass.async_block_till_done()
+    assert mqtt_mock.async_publish.call_args_list[0].args[1] == '{"value": 0}'
+    assert ctrl.history[0]["reden"] == "testmodus uitgezet"
