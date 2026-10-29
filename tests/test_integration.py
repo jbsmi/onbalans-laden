@@ -296,3 +296,74 @@ async def test_manual_control(hass: HomeAssistant, mqtt_mock, aioclient_mock):
     r = await hass.config_entries.options.async_configure(fid, {"next_step_id": "opslaan"})
     await hass.async_block_till_done()
     assert [b["control"] for b in entry.options["blocks"]] == ["aan", "aan", "aan"]
+
+
+async def test_entity_control(hass: HomeAssistant, mqtt_mock, aioclient_mock):
+    from types import SimpleNamespace
+    LIM = "number.multiplus_current_limit"
+    MODE = "select.multiplus"
+    hass.states.async_set(LIM, "8.6", {"min": 0, "max": 100, "step": 1})
+    hass.states.async_set(MODE, "on", {"options": ["charger_only", "inverter_only", "on", "off"]})
+    num_calls, sel_calls = [], []
+    from homeassistant.core import ServiceRegistry
+    real_call = ServiceRegistry.async_call
+
+    async def fake_call(self, domain, service, data=None, *args, **kwargs):
+        if data and data.get("entity_id") in (LIM, MODE):
+            (num_calls if domain == "number" else sel_calls).append(SimpleNamespace(data=data))
+            return None
+        return await real_call(self, domain, service, data, *args, **kwargs)
+
+    aioclient_mock.get(DEFAULT_URL, text=make_html(dt_util.now(), ["-20,00"]))
+    opts = default_options()
+    for b in opts["blocks"]:
+        b.update(threshold=0.0, offset_low=5.0, offset_high=5.0, delay_on=0, delay_off=0, power_kw=10.0)
+    opts["stop_on_startup"] = False
+    entry = MockConfigEntry(domain=DOMAIN, data={}, options=opts)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    patcher = patch.object(ServiceRegistry, "async_call", fake_call)
+    patcher.start()
+    request_cleanup = patcher.stop
+
+    # optiemenu: aansturing via entiteiten
+    r = await hass.config_entries.options.async_init(entry.entry_id)
+    fid = r["flow_id"]
+    r = await hass.config_entries.options.async_configure(fid, {"next_step_id": "omvormers"})
+    assert r["step_id"] == "omvormers"
+    r = await hass.config_entries.options.async_configure(fid, {
+        "control_method": "entities", "mode_start": "charger_only", "mode_stop": "-", "limit_stop": 0})
+    assert r["errors"] == {"base": "no_entities"}
+    r = await hass.config_entries.options.async_configure(fid, {
+        "control_method": "entities", "limit_entity": LIM, "mode_entity": MODE,
+        "mode_start": "charger_only", "mode_stop": "-", "limit_stop": 0})
+    assert r["type"] == FlowResultType.MENU
+    r = await hass.config_entries.options.async_configure(fid, {"next_step_id": "opslaan"})
+    await hass.async_block_till_done()
+    ctrl = hass.data[DOMAIN][entry.entry_id]
+    assert entry.options["limit_entity"] == LIM
+
+    # testmodus aan -> niets
+    await ctrl.async_evaluate()
+    assert ctrl.sm.charging and not num_calls and not sel_calls
+
+    await ctrl.async_set_test_mode(False)
+    await hass.async_block_till_done()
+    # 10 kW / 0.93 / (3 x 230) = 15.58 A -> 15 A, daarna modus charger_only
+    assert num_calls[-1].data == {"entity_id": LIM, "value": 15.0}
+    assert sel_calls[-1].data == {"entity_id": MODE, "option": "charger_only"}
+    assert ctrl.history[0]["berichten"] == [f"{LIM} = 15.0", f"{MODE} = charger_only"]
+
+    # stop: limiet 0, modus ongewijzigd
+    hass.states.async_set(LIM, "15", {"min": 0, "max": 100, "step": 1})
+    hass.states.async_set(MODE, "charger_only")
+    n_sel = len(sel_calls)
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(DEFAULT_URL, text=make_html(dt_util.now(), ["10,00"]))
+    await ctrl.coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert not ctrl.sm.charging
+    assert num_calls[-1].data == {"entity_id": LIM, "value": 0.0}
+    assert len(sel_calls) == n_sel
+    request_cleanup()

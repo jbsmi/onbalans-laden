@@ -160,3 +160,12 @@ def test_state_machine_manual():
     # terug naar auto: normale startvertraging
     d = sm.evaluate(now, True, -10.0, p, 20.0, "auto")
     assert d.status == "startvertraging"
+
+
+def test_limit_value():
+    from custom_components.onbalans_laden.logic import limit_value
+    assert limit_value(15.66, 1, 0, 100) == 15.0  # naar beneden op stap 1
+    assert limit_value(15.66, 0.1, 0, 100) == 15.6
+    assert limit_value(150, 1, 0, 100) == 100
+    assert limit_value(0, 1, 0, 100) == 0
+    assert limit_value(-3, None, None, None) == 0
